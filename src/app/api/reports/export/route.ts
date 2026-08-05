@@ -1,5 +1,5 @@
 import ExcelJS from "exceljs";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import { listProducts } from "@/lib/data";
 
@@ -44,7 +44,25 @@ function addSummary(sheet: ExcelJS.Worksheet, label: string, value: string | num
   });
 }
 
-export async function GET() {
+function addTable(sheet: ExcelJS.Worksheet, name: string, columnCount: number) {
+  const columnName = String.fromCharCode(64 + columnCount);
+  const columns = Array.from({ length: columnCount }, (_, index) => ({ name: String(sheet.getCell(1, index + 1).value ?? `Column ${index + 1}`) }));
+  const rows = Array.from({ length: Math.max(0, sheet.rowCount - 1) }, (_, rowIndex) => Array.from({ length: columnCount }, (_, columnIndex) => sheet.getCell(rowIndex + 2, columnIndex + 1).value ?? null));
+  sheet.addTable({
+    name,
+    ref: `A1:${columnName}${sheet.rowCount}`,
+    headerRow: true,
+    totalsRow: false,
+    columns,
+    rows,
+    style: { theme: "TableStyleMedium2", showRowStripes: true },
+  });
+}
+
+export async function GET(request: NextRequest) {
+  const from = request.nextUrl.searchParams.get("from");
+  const to = request.nextUrl.searchParams.get("to");
+  const sales = demoSales.filter((sale) => (!from || sale.saleDate >= from) && (!to || sale.saleDate <= to));
   const products = await listProducts();
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "Tuck Shop";
@@ -52,13 +70,14 @@ export async function GET() {
 
   const salesSheet = workbook.addWorksheet("Sales Report");
   salesSheet.addRow(["Sale Date", "Order Number", "Product Code", "Product", "Quantity", "Unit Price", "Subtotal", "Payment Method", "Staff", "Sale Status"]);
-  demoSales.forEach((sale) => salesSheet.addRow([sale.saleDate, sale.orderNumber, sale.productCode, sale.product, sale.quantity, sale.unitPrice, sale.subtotal, sale.paymentMethod, sale.staff, sale.status]));
+  sales.forEach((sale) => salesSheet.addRow([sale.saleDate, sale.orderNumber, sale.productCode, sale.product, sale.quantity, sale.unitPrice, sale.subtotal, sale.paymentMethod, sale.staff, sale.status]));
   salesSheet.getColumn(6).numFmt = '"RM"0.00';
   salesSheet.getColumn(7).numFmt = '"RM"0.00';
-  addSummary(salesSheet, "Total valid orders", demoSales.length);
-  addSummary(salesSheet, "Cash total", demoSales.filter((sale) => sale.paymentMethod === "Cash").reduce((sum, sale) => sum + sale.subtotal, 0));
-  addSummary(salesSheet, "E-payment total", demoSales.filter((sale) => sale.paymentMethod === "E-payment").reduce((sum, sale) => sum + sale.subtotal, 0));
-  addSummary(salesSheet, "Grand total revenue", demoSales.reduce((sum, sale) => sum + sale.subtotal, 0));
+  addTable(salesSheet, "SalesReport", 10);
+  addSummary(salesSheet, "Total valid orders", sales.length);
+  addSummary(salesSheet, "Cash total", sales.filter((sale) => sale.paymentMethod === "Cash").reduce((sum, sale) => sum + sale.subtotal, 0));
+  addSummary(salesSheet, "E-payment total", sales.filter((sale) => sale.paymentMethod === "E-payment").reduce((sum, sale) => sum + sale.subtotal, 0));
+  addSummary(salesSheet, "Grand total revenue", sales.reduce((sum, sale) => sum + sale.subtotal, 0));
   styleSheet(salesSheet, 10);
 
   const inventorySheet = workbook.addWorksheet("Inventory Report");
@@ -67,6 +86,7 @@ export async function GET() {
   inventorySheet.getColumn(5).numFmt = '"RM"0.00';
   inventorySheet.getColumn(6).numFmt = '"RM"0.00';
   inventorySheet.getColumn(7).numFmt = '"RM"0.00';
+  addTable(inventorySheet, "InventoryReport", 9);
   addSummary(inventorySheet, "Total inventory value", products.reduce((sum, product) => sum + (product.cost_price ?? 0) * product.current_stock, 0));
   styleSheet(inventorySheet, 9);
 
@@ -77,6 +97,7 @@ export async function GET() {
   profitSheet.getColumn(3).numFmt = '"RM"0.00';
   profitSheet.getColumn(4).numFmt = '"RM"0.00';
   profitSheet.getColumn(5).numFmt = "0.00%";
+  addTable(profitSheet, "MonthlyProfitReport", 5);
   addSummary(profitSheet, "Annual revenue", 6);
   addSummary(profitSheet, "Annual cost", 3.6);
   addSummary(profitSheet, "Annual profit", 2.4);
