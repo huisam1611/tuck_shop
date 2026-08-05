@@ -13,6 +13,18 @@ export type Product = {
   status: "active" | "inactive";
 };
 
+export type Profile = { id: string; name: string; role: "admin" | "staff"; is_active: boolean };
+
+export async function getCurrentProfile(): Promise<Profile | null> {
+  if (!hasSupabaseEnv()) return { id: "demo-admin", name: "Alice", role: "admin", is_active: true };
+
+  const supabase = await createClient();
+  const { data: authData } = await supabase.auth.getUser();
+  if (!authData.user) return null;
+  const { data } = await supabase.from("profiles").select("id, name, role, is_active").eq("id", authData.user.id).maybeSingle();
+  return (data as Profile | null) ?? null;
+}
+
 export const demoProducts: Product[] = [
   { id: "demo-001", product_code: "P001", name: "Potato Chips", category: "Snacks", cost_price: 1.2, selling_price: 2, current_stock: 40, minimum_stock: 10, status: "active" },
   { id: "demo-002", product_code: "P002", name: "Chocolate Bar", category: "Snacks", cost_price: 1.3, selling_price: 2, current_stock: 35, minimum_stock: 10, status: "active" },
@@ -30,11 +42,10 @@ export async function listProducts(): Promise<Product[]> {
   if (!hasSupabaseEnv()) return demoProducts;
 
   const supabase = await createClient();
-  const { data: authData } = await supabase.auth.getUser();
-  if (!authData.user) return [];
+  const profile = await getCurrentProfile();
+  if (!profile) return [];
 
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", authData.user.id).maybeSingle();
-  const source = profile?.role === "admin" ? "products" : "staff_products";
+  const source = profile.role === "admin" ? "products" : "staff_products";
   const { data, error } = await supabase.from(source).select("*").order("name");
   if (error) throw new Error("Unable to load products.");
   return (data ?? []) as Product[];

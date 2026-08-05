@@ -119,12 +119,12 @@ Pending: reset a local/test Supabase database from migrations, run the seed once
 
 **Goal:** Complete the workflows Staff and Admin use every day.
 
-**Progress:** Login action, Next.js 16 session proxy, product read view, inventory read view, reports shell, and a validated sale composer are implemented. Product mutations, logout, user management, stock mutations, and live Supabase verification remain pending.
+**Progress:** Login action, logout, Next.js 16 session proxy, Admin/Staff dashboard split, product read/create view, inventory read view with stock actions, reports shell, and a validated sale composer are implemented. Product edit/delete, user management, stock history, and live Supabase verification remain pending.
 
 ### 3A. Authentication and Navigation — 0.5–1 day
 
-- [ ] P3.1 Build email/password login and logout. (Login is implemented; logout is pending.)
-- [ ] P3.2 Add server-side session refresh, protected route handling, inactive-user rejection, and role-aware navigation. (Proxy and protected route handling are implemented; inactive-user and role-aware navigation are pending.)
+- [ ] P3.1 Build email/password login and logout. (Implemented.)
+- [ ] P3.2 Add server-side session refresh, protected route handling, inactive-user rejection, and role-aware navigation. (Proxy, inactive-user redirect, and role-aware navigation are implemented; live-session verification is pending.)
 - [ ] P3.3 Add Admin user list, invitation/creation flow, activation, deactivation, and role changes.
 
 **Check:** Staff cannot open Admin URLs even by typing the address directly.
@@ -132,7 +132,7 @@ Pending: reset a local/test Supabase database from migrations, run the seed once
 ### 3B. Product Management — 1 day
 
 - [ ] P3.4 Build paginated product list with search, category/status filters, and low-stock badges. (Initial responsive read-only list is implemented.)
-- [ ] P3.5 Build Admin create/edit forms with shared Zod validation.
+- [ ] P3.5 Build Admin create/edit forms with shared Zod validation. (Create is implemented; edit is pending.)
 - [ ] P3.6 Implement activate/deactivate and safe-delete confirmation flows.
 
 **Check:** Products with history cannot be deleted, and inactive products cannot be sold.
@@ -140,7 +140,7 @@ Pending: reset a local/test Supabase database from migrations, run the seed once
 ### 3C. Sales Recording — 1.5–2 days
 
 - [ ] P3.7 Build a touch-friendly order form with product selection, quantity controls, live subtotals, payment selection, and order total. (Initial composer is implemented.)
-- [ ] P3.8 Save through `create_sale`; prevent repeat submissions and show the generated order reference.
+- [ ] P3.8 Save through `create_sale`; prevent repeat submissions and show the generated order reference. (Initial action is implemented; live RPC verification is pending.)
 - [ ] P3.9 Build recent-sales and sale-detail screens.
 - [ ] P3.10 Build the Admin void dialog with mandatory reason.
 
@@ -149,7 +149,7 @@ Pending: reset a local/test Supabase database from migrations, run the seed once
 ### 3D. Inventory — 1–2 days
 
 - [ ] P3.11 Build inventory list and low/out-of-stock views. (Initial responsive read-only list is implemented.)
-- [ ] P3.12 Build stock-in and stock-adjustment forms.
+- [ ] P3.12 Build stock-in and stock-adjustment forms. (Initial actions/forms are implemented; live RPC verification is pending.)
 - [ ] P3.13 Build paginated, filterable, read-only stock movement history.
 
 **Check:** Every stock change has matching before/after values and an audit reference.

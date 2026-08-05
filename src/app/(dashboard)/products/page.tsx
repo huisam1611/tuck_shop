@@ -1,4 +1,6 @@
-import { listProducts } from "@/lib/data";
+import { getCurrentProfile, listProducts } from "@/lib/data";
+
+import { ProductForm } from "./product-form";
 
 export const dynamic = "force-dynamic";
 
@@ -6,6 +8,8 @@ export const metadata = { title: "Products" };
 
 export default async function ProductsPage() {
   const products = await listProducts();
+  const profile = await getCurrentProfile();
+  const canManage = profile?.role === "admin";
 
   return (
     <div className="min-h-screen px-4 py-5 sm:px-6 lg:px-10 lg:py-8">
@@ -15,10 +19,10 @@ export default async function ProductsPage() {
           <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-950">Products</h1>
           <p className="mt-2 text-sm text-slate-500">Manage prices, stock thresholds, and product status.</p>
         </div>
-        <button className="h-11 rounded-xl bg-blue-700 px-5 text-sm font-semibold text-white shadow-lg shadow-blue-700/20 hover:bg-blue-800">
-          + Add product
-        </button>
+        {canManage ? <a href="#new-product" className="h-11 rounded-xl bg-blue-700 px-5 py-3 text-center text-sm font-semibold text-white shadow-lg shadow-blue-700/20 hover:bg-blue-800">+ Add product</a> : null}
       </header>
+
+      {canManage ? <section id="new-product" className="mb-6"><h2 className="mb-3 text-lg font-semibold text-slate-950">Add product</h2><ProductForm /></section> : null}
 
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">

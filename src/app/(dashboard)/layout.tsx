@@ -1,4 +1,8 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+
+import { signOut } from "@/app/(auth)/logout-action";
+import { getCurrentProfile } from "@/lib/data";
 
 const navigation = [
   { href: "/dashboard", label: "Dashboard", icon: "▦" },
@@ -8,7 +12,11 @@ const navigation = [
   { href: "/reports", label: "Reports", icon: "▤" },
 ];
 
-export default function DashboardLayout({ children }: LayoutProps<"/">) {
+export default async function DashboardLayout({ children }: LayoutProps<"/">) {
+  const profile = await getCurrentProfile();
+  if (profile && !profile.is_active) redirect("/login");
+  const visibleNavigation = profile?.role === "staff" ? navigation.filter((item) => item.href !== "/reports") : navigation;
+
   return (
     <div className="min-h-screen bg-[#f5f7fb] lg:flex">
       <aside className="border-b border-slate-200 bg-white lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col lg:border-b-0 lg:border-r">
@@ -28,7 +36,7 @@ export default function DashboardLayout({ children }: LayoutProps<"/">) {
         </div>
 
         <nav aria-label="Main navigation" className="flex gap-1 overflow-x-auto px-4 pb-4 lg:block lg:space-y-1 lg:px-4">
-          {navigation.map((item) => (
+          {visibleNavigation.map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -43,9 +51,9 @@ export default function DashboardLayout({ children }: LayoutProps<"/">) {
         </nav>
 
         <div className="hidden border-t border-slate-100 px-7 py-6 lg:mt-auto lg:block">
-          <Link href="/login" className="text-sm font-semibold text-slate-500 hover:text-slate-900">
-            Sign out
-          </Link>
+          <form action={signOut}>
+            <button type="submit" className="text-sm font-semibold text-slate-500 hover:text-slate-900">Sign out</button>
+          </form>
         </div>
       </aside>
 
