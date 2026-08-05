@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { LoginForm } from "./login-form";
+
 export const metadata = { title: "Sign in" };
 
 export default function LoginPage() {
@@ -16,35 +18,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <form className="space-y-5">
-          <label className="block text-sm font-medium text-slate-700">
-            Email
-            <input
-              name="email"
-              type="email"
-              autoComplete="email"
-              placeholder="you@school.edu"
-              className="mt-2 h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-            />
-          </label>
-          <label className="block text-sm font-medium text-slate-700">
-            Password
-            <input
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              placeholder="••••••••"
-              className="mt-2 h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-            />
-          </label>
-          <button
-            type="button"
-            disabled
-            className="h-12 w-full cursor-not-allowed rounded-xl bg-blue-300 font-semibold text-white"
-          >
-            Sign in (coming next)
-          </button>
-        </form>
+        <LoginForm />
 
         <div className="mt-8 border-t border-slate-100 pt-6 text-center text-sm text-slate-500">
           <span>Foundation preview: </span>

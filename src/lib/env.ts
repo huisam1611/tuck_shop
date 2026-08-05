@@ -6,6 +6,10 @@ const publicEnvSchema = z.object({
   BUSINESS_TIMEZONE: z.string().default("Asia/Kuala_Lumpur"),
 });
 
+export function hasSupabaseEnv() {
+  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+}
+
 export function getPublicEnv() {
   return publicEnvSchema.parse({
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
