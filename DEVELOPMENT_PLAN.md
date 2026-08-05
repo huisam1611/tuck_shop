@@ -160,7 +160,7 @@ Pending: reset a local/test Supabase database from migrations, run the seed once
 
 **Goal:** Turn transaction data into trustworthy operational information.
 
-**Progress:** ExcelJS export route and Reports download form are implemented. The workbook returns three styled worksheets in demo mode and was verified through the production server; live report queries, filter application, and summary tests remain pending.
+**Progress:** ExcelJS export route and Reports download form are implemented. The workbook returns three styled worksheets, applies demo `from/to` filters, adds Excel table objects, and was verified through the production server; live report queries and summary tests remain pending.
 
 ### Tasks
 
@@ -169,8 +169,8 @@ Pending: reset a local/test Supabase database from migrations, run the seed once
 - [ ] P4.3 Build daily sales, monthly sales/profit, inventory, best-selling, and low-stock reports.
 - [ ] P4.4 Add date range, month/year, product, category, payment, Staff, and status filters using URL query parameters.
 - [ ] P4.5 Build global search grouped into Product and Sale results.
-- [ ] P4.6 Generate the three-worksheet Excel workbook using the active report filters. (Initial demo workbook is implemented; filters and live data are pending.)
-- [ ] P4.7 Apply required Excel styles, number/date formats, filters, frozen headers, tables, summaries, and safe column widths. (Initial styling, currency formats, frozen headers, summaries, and widths are implemented; Excel table objects are pending.)
+- [ ] P4.6 Generate the three-worksheet Excel workbook using the active report filters. (Demo `from/to` filtering is implemented; live data is pending.)
+- [ ] P4.7 Apply required Excel styles, number/date formats, filters, frozen headers, tables, summaries, and safe column widths. (Implemented for the demo workbook.)
 
 ### Required Calculation Tests
 
@@ -190,15 +190,17 @@ Use a fixed dataset to compare on-screen values, direct SQL results, and workboo
 
 **Goal:** Prove the V1 acceptance criteria and deploy safely.
 
+**Progress:** README, a currency smoke test, and the full local typecheck/lint/test/build gate are implemented. Database integration tests, browser end-to-end tests, accessibility review, and deployment remain pending.
+
 ### Tasks
 
-- [ ] P5.1 Add unit tests for money calculations, dates, status derivation, and Zod schemas.
+- [ ] P5.1 Add unit tests for money calculations, dates, status derivation, and Zod schemas. (Foundation currency smoke test exists; domain tests are pending.)
 - [ ] P5.2 Add integration tests for RPC transactions, concurrency, RLS, and report queries.
 - [ ] P5.3 Add end-to-end tests for login, product creation, sale, stock-in, adjustment, void, report, and export workflows.
 - [ ] P5.4 Verify keyboard access, focus states, labels, contrast, loading states, empty states, and error recovery.
 - [ ] P5.5 Test common desktop widths and iPhone widths at 375 px and 430 px.
 - [ ] P5.6 Review security headers, secrets, service-role usage, server authorization, and dependency audit results.
-- [ ] P5.7 Write README instructions for setup, migrations, seed, tests, first Admin, deployment, backup, and recovery.
+- [ ] P5.7 Write README instructions for setup, migrations, seed, tests, first Admin, deployment, backup, and recovery. (Setup, migrations, seed, tests, and first Admin notes are documented; deployment/backup/recovery are pending.)
 - [ ] P5.8 Configure Supabase production migrations and Vercel environment variables, then perform a deployment smoke test.
 
 ### Release Gate

@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Tuck Shop Sales & Inventory Management System
 
-## Getting Started
+Next.js 16 + Supabase application for recording school tuck shop sales, controlling stock, and exporting reports.
 
-First, run the development server:
+## Current implementation
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
+- Foundation: Next.js App Router, Tailwind CSS, shadcn/ui, responsive shell
+- Auth: Supabase email/password action, protected Next.js 16 proxy, logout
+- Sales: multi-item sale composer with server-side validation and `create_sale` RPC
+- Products: Admin product creation RPC and responsive product list
+- Inventory: stock-in and adjustment RPC actions with low-stock list
+- Reports: three-sheet ExcelJS export with demo filters and table formatting
+
+The app runs in demo mode when Supabase variables are empty. Demo data is not production data.
+
+## Local setup
+
+```powershell
+pnpm install
+Copy-Item .env.example .env.local
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+For real authentication and data, fill `.env.local` with:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```text
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+BUSINESS_TIMEZONE=Asia/Kuala_Lumpur
+```
 
-## Learn More
+Do not commit `.env.local`.
 
-To learn more about Next.js, take a look at the following resources:
+## Database setup
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Apply the migrations in `supabase/migrations/` to a Supabase project, then run `supabase/seed.sql` in a development database. The first Admin profile must reference an existing Supabase Auth user and is created as a deployment step.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The database layer contains RLS, Staff-safe views, idempotent sale creation, stock-in, stock adjustment, sale voiding, product Admin RPCs, and audit movements. It has not yet been executed against a live Supabase project in this workspace.
 
-## Deploy on Vercel
+## Checks
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```powershell
+pnpm typecheck
+pnpm lint
+pnpm test
+pnpm build
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The report endpoint smoke test can be run after `pnpm build` and `pnpm start`:
+
+```text
+GET /api/reports/export?from=2026-08-06&to=2026-08-06
+```
+
+## Development plan
+
+See [DEVELOPMENT_PLAN.md](./DEVELOPMENT_PLAN.md) for stage gates, remaining work, and the V1 acceptance criteria. See [project prompt.md](./project%20prompt.md) for the product specification.
