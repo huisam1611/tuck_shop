@@ -160,6 +160,8 @@ Pending: reset a local/test Supabase database from migrations, run the seed once
 
 **Goal:** Turn transaction data into trustworthy operational information.
 
+**Progress:** ExcelJS export route and Reports download form are implemented. The workbook returns three styled worksheets in demo mode and was verified through the production server; live report queries, filter application, and summary tests remain pending.
+
 ### Tasks
 
 - [ ] P4.1 Build permission-aware Admin and Staff dashboards.
@@ -167,8 +169,8 @@ Pending: reset a local/test Supabase database from migrations, run the seed once
 - [ ] P4.3 Build daily sales, monthly sales/profit, inventory, best-selling, and low-stock reports.
 - [ ] P4.4 Add date range, month/year, product, category, payment, Staff, and status filters using URL query parameters.
 - [ ] P4.5 Build global search grouped into Product and Sale results.
-- [ ] P4.6 Generate the three-worksheet Excel workbook using the active report filters.
-- [ ] P4.7 Apply required Excel styles, number/date formats, filters, frozen headers, tables, summaries, and safe column widths.
+- [ ] P4.6 Generate the three-worksheet Excel workbook using the active report filters. (Initial demo workbook is implemented; filters and live data are pending.)
+- [ ] P4.7 Apply required Excel styles, number/date formats, filters, frozen headers, tables, summaries, and safe column widths. (Initial styling, currency formats, frozen headers, summaries, and widths are implemented; Excel table objects are pending.)
 
 ### Required Calculation Tests
 
