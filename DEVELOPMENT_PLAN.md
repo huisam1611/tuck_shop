@@ -88,14 +88,16 @@ All four commands pass from the current checkout. The login action remains inten
 
 **Goal:** Make PostgreSQL the trusted source of truth before building business screens.
 
+**Progress:** Local migration, RLS, safe Staff views, seed data, and atomic RPCs are implemented. The Supabase integration exit check remains pending until a local/test Supabase database is available.
+
 ### Tasks
 
-- [ ] P2.1 Create enum/check constraints, tables, foreign keys, indexes, timestamp triggers, and uniqueness rules from the specification.
-- [ ] P2.2 Create safe database views for Staff that exclude cost and profit fields.
-- [ ] P2.3 Implement RLS policies for `profiles`, `products`, `sales`, `sale_items`, `stock_receipts`, and `stock_movements`.
-- [ ] P2.4 Implement the idempotent atomic `create_sale` RPC with a unique client request ID, row locks, server-side price snapshots, daily numbering, stock deduction, and movement history.
-- [ ] P2.5 Implement Admin-only `void_sale`, `stock_in`, and `adjust_stock` RPC functions.
-- [ ] P2.6 Create development seed data for one Admin profile and the ten sample products.
+- [x] P2.1 Create enum/check constraints, tables, foreign keys, indexes, timestamp triggers, and uniqueness rules from the specification.
+- [x] P2.2 Create safe database views for Staff that exclude cost and profit fields.
+- [x] P2.3 Implement RLS policies for `profiles`, `products`, `sales`, `sale_items`, `stock_receipts`, and `stock_movements`.
+- [x] P2.4 Implement the idempotent atomic `create_sale` RPC with a unique client request ID, row locks, server-side price snapshots, daily numbering, stock deduction, and movement history.
+- [x] P2.5 Implement Admin-only `void_sale`, `stock_in`, and `adjust_stock` RPC functions.
+- [x] P2.6 Create development seed data for the ten sample products. First Admin creation remains an authenticated deployment step.
 - [ ] P2.7 Generate TypeScript database types from the final schema.
 
 ### Required Database Tests
@@ -109,7 +111,7 @@ All four commands pass from the current checkout. The login action remains inten
 
 ### Exit Check
 
-Reset a local/test Supabase database from migrations, run the seed once, and pass all database/RLS integration tests.
+Pending: reset a local/test Supabase database from migrations, run the seed once, generate database types, and pass all database/RLS integration tests. No Supabase project credentials are present in this workspace, so this check is not claimed complete.
 
 ---
 
