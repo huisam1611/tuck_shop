@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useMemo, useRef, useState } from "react";
 
 import { createSale, type SaleActionState } from "./actions";
 
@@ -13,8 +13,13 @@ export function SaleComposer({ products }: { products: SaleProduct[] }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedId, setSelectedId] = useState(products[0]?.id ?? "");
   const [quantity, setQuantity] = useState(1);
+  const requestIdInput = useRef<HTMLInputElement>(null);
   const [state, formAction, pending] = useActionState(createSale, initialState);
   const total = useMemo(() => cart.reduce((sum, item) => sum + item.quantity * item.selling_price, 0), [cart]);
+
+  function ensureRequestId() {
+    if (requestIdInput.current && !requestIdInput.current.value) requestIdInput.current.value = crypto.randomUUID();
+  }
 
   function addItem() {
     const product = products.find((item) => item.id === selectedId);
@@ -28,8 +33,9 @@ export function SaleComposer({ products }: { products: SaleProduct[] }) {
   }
 
   return (
-    <form action={formAction} className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
+    <form action={formAction} onSubmit={ensureRequestId} className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
       <input type="hidden" name="items" value={JSON.stringify(cart.map(({ id, quantity }) => ({ product_id: id, quantity })))} />
+      <input ref={requestIdInput} type="hidden" name="clientRequestId" defaultValue="" />
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <label className="flex-1 text-sm font-medium text-slate-700">

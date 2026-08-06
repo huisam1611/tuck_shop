@@ -61,6 +61,7 @@ export async function GET(request: NextRequest) {
   const filters: ReportFilters = {
     from: params.get("from") || undefined,
     to: params.get("to") || undefined,
+    month: params.get("month") || undefined,
     paymentMethod: params.get("paymentMethod") === "cash" || params.get("paymentMethod") === "e_payment" ? params.get("paymentMethod") as ReportFilters["paymentMethod"] : undefined,
     status: params.get("status") === "completed" || params.get("status") === "voided" ? params.get("status") as ReportFilters["status"] : undefined,
     product: params.get("product") || undefined,

@@ -65,6 +65,7 @@ export type StockMovement = {
 export type ReportFilters = {
   from?: string;
   to?: string;
+  month?: string;
   paymentMethod?: "cash" | "e_payment";
   status?: "completed" | "voided";
   product?: string;
@@ -89,6 +90,11 @@ export type DashboardSummary = {
   lowStockProducts: { name: string; currentStock: number }[];
   bestSelling: { name: string; sold: number; revenue: number }[];
   dailyRevenue: number[];
+};
+
+export type SearchResults = {
+  products: Product[];
+  sales: (SaleSummary & { item_names: string[] })[];
 };
 
 export async function getCurrentProfile(): Promise<Profile | null> {
@@ -291,6 +297,7 @@ export async function getReportData(filters: ReportFilters = {}): Promise<Report
   const filteredSales = sales.filter((sale) => (
     (!filters.from || sale.sale_date >= filters.from)
     && (!filters.to || sale.sale_date <= filters.to)
+    && (!filters.month || sale.sale_date.startsWith(filters.month))
     && (!filters.paymentMethod || sale.payment_method === filters.paymentMethod)
     && (!filters.status || sale.status === filters.status)
     && matchesText(sale.staff_name ?? "", filters.staff)
@@ -372,4 +379,20 @@ export async function getDashboardSummary(profile: Profile | null): Promise<Dash
     bestSelling: [...productTotals.values()].sort((left, right) => right.sold - left.sold).slice(0, 10),
     dailyRevenue,
   };
+}
+
+export async function searchRecords(query: string): Promise<SearchResults> {
+  const search = query.trim().toLowerCase();
+  if (!search) return { products: [], sales: [] };
+  const [products, sales] = await Promise.all([listProducts(), listSales()]);
+  const items = await listSaleItems(sales.map((sale) => sale.id));
+  const itemNamesBySale = new Map<string, string[]>();
+  for (const item of items) itemNamesBySale.set(item.sale_id, [...(itemNamesBySale.get(item.sale_id) ?? []), `${item.product_code} ${item.product_name}`]);
+  const productMatches = products.filter((product) => [product.product_code, product.name, product.category].some((value) => value.toLowerCase().includes(search)));
+  const saleMatches = sales.filter((sale) => {
+    const order = `${sale.sale_date}-${String(sale.daily_order_number).padStart(3, "0")}`;
+    const names = itemNamesBySale.get(sale.id) ?? [];
+    return [order, sale.sale_date, sale.staff_name ?? "", ...names].some((value) => value.toLowerCase().includes(search));
+  }).map((sale) => ({ ...sale, item_names: itemNamesBySale.get(sale.id) ?? [] }));
+  return { products: productMatches, sales: saleMatches };
 }

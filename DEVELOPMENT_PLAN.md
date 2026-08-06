@@ -131,7 +131,7 @@ Pending: reset a local/test Supabase database from migrations, run the seed once
 
 ### 3B. Product Management — 1 day
 
-- [ ] P3.4 Build paginated product list with search, category/status filters, and low-stock badges. (Initial responsive read-only list is implemented.)
+- [ ] P3.4 Build paginated product list with search, category/status filters, and low-stock badges. (Search, status filtering, pagination, and low-stock badges are implemented.)
 - [ ] P3.5 Build Admin create/edit forms with shared Zod validation. (Create and edit are implemented.)
 - [ ] P3.6 Implement activate/deactivate and safe-delete confirmation flows. (Status changes and safe-delete confirmation are implemented.)
 
@@ -140,7 +140,7 @@ Pending: reset a local/test Supabase database from migrations, run the seed once
 ### 3C. Sales Recording — 1.5–2 days
 
 - [ ] P3.7 Build a touch-friendly order form with product selection, quantity controls, live subtotals, payment selection, and order total. (Initial composer is implemented.)
-- [ ] P3.8 Save through `create_sale`; prevent repeat submissions and show the generated order reference. (Initial action is implemented; live RPC verification is pending.)
+- [ ] P3.8 Save through `create_sale`; prevent repeat submissions and show the generated order reference. (Stable client request ID and repeat-safe server action are implemented; live RPC verification is pending.)
 - [ ] P3.9 Build recent-sales and sale-detail screens. (Sales history with line items is implemented.)
 - [ ] P3.10 Build the Admin void dialog with mandatory reason. (Admin void form and protected RPC are implemented.)
 
@@ -150,7 +150,7 @@ Pending: reset a local/test Supabase database from migrations, run the seed once
 
 - [ ] P3.11 Build inventory list and low/out-of-stock views. (Initial responsive read-only list is implemented.)
 - [ ] P3.12 Build stock-in and stock-adjustment forms. (Initial actions/forms are implemented; live RPC verification is pending.)
-- [ ] P3.13 Build paginated, filterable, read-only stock movement history. (Read-only Admin history table is implemented; pagination/filtering remains.)
+- [ ] P3.13 Build paginated, filterable, read-only stock movement history. (Read-only Admin history table, search, type filtering, and pagination are implemented.)
 
 **Check:** Every stock change has matching before/after values and an audit reference.
 
@@ -160,15 +160,15 @@ Pending: reset a local/test Supabase database from migrations, run the seed once
 
 **Goal:** Turn transaction data into trustworthy operational information.
 
-**Progress:** ExcelJS export route and Reports page are connected to shared report queries. The screen and workbook use date, payment, status, product, category, and Staff filters; summaries exclude voided sales, monthly profit is calculated from historical cost snapshots, and the workbook returns three styled worksheets with Excel tables. Dashboard charts, global search, and live Supabase verification remain pending.
+**Progress:** ExcelJS export route and Reports page are connected to shared report queries. The screen and workbook use month, date, payment, status, product, category, and Staff filters; summaries exclude voided sales, monthly profit is calculated from historical cost snapshots, the Dashboard uses live summary queries, and the workbook returns three styled worksheets with Excel tables. Search is grouped by Products and Sales; debounce and live Supabase verification remain pending.
 
 ### Tasks
 
-- [ ] P4.1 Build permission-aware Admin and Staff dashboards.
-- [ ] P4.2 Add monthly revenue trend and top-10 product charts with accessible table alternatives.
+- [ ] P4.1 Build permission-aware Admin and Staff dashboards. (Role-aware live summary cards, revenue trend, low-stock list, and best-selling table are implemented.)
+- [ ] P4.2 Add monthly revenue trend and top-10 product charts with accessible table alternatives. (Revenue trend and accessible best-selling table are implemented; a dedicated product chart remains.)
 - [ ] P4.3 Build daily sales, monthly sales/profit, inventory, best-selling, and low-stock reports. (Daily detail, monthly profit, and inventory export data are implemented; best-selling/low-stock report cards remain.)
-- [ ] P4.4 Add date range, month/year, product, category, payment, Staff, and status filters using URL query parameters. (Date range, product, category, payment, Staff, and status filters are implemented; explicit month/year controls remain.)
-- [ ] P4.5 Build global search grouped into Product and Sale results.
+- [ ] P4.4 Add date range, month/year, product, category, payment, Staff, and status filters using URL query parameters. (Month, date range, product, category, payment, Staff, and status filters are implemented.)
+- [ ] P4.5 Build global search grouped into Product and Sale results. (Grouped search page is implemented; debounce remains.)
 - [ ] P4.6 Generate the three-worksheet Excel workbook using the active report filters. (Live shared report data and all current URL filters are implemented.)
   - [ ] P4.7 Apply required Excel styles, number/date formats, filters, frozen headers, tables, summaries, and safe column widths. (Implemented and smoke-tested with filtered data.)
 
