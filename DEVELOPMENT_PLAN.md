@@ -199,8 +199,8 @@ Use a fixed dataset to compare on-screen values, direct SQL results, and workboo
 - [ ] P5.3 Add end-to-end tests for login, product creation, sale, stock-in, adjustment, void, report, and export workflows.
 - [ ] P5.4 Verify keyboard access, focus states, labels, contrast, loading states, empty states, and error recovery.
 - [ ] P5.5 Test common desktop widths and iPhone widths at 375 px and 430 px.
-- [ ] P5.6 Review security headers, secrets, service-role usage, server authorization, and dependency audit results.
-- [ ] P5.7 Write README instructions for setup, migrations, seed, tests, first Admin, deployment, backup, and recovery. (Setup, migrations, seed, tests, and first Admin notes are documented; deployment/backup/recovery are pending.)
+- [ ] P5.6 Review security headers, secrets, service-role usage, server authorization, and dependency audit results. (Basic response security headers and server-side role guards are implemented; full security review remains.)
+- [ ] P5.7 Write README instructions for setup, migrations, seed, tests, first Admin, deployment, backup, and recovery. (Setup, migrations, seed, tests, first Admin, and release blockers are documented; deployment/backup/recovery details remain.)
 - [ ] P5.8 Configure Supabase production migrations and Vercel environment variables, then perform a deployment smoke test.
 
 ### Release Gate
