@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { signOut } from "@/app/(auth)/logout-action";
 import { getCurrentProfile } from "@/lib/data";
+import { hasSupabaseEnv } from "@/lib/env";
 
 const navigation = [
   { href: "/dashboard", label: "Dashboard", icon: "▦" },
@@ -33,7 +34,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/">) {
             </span>
           </Link>
           <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 lg:mt-8 lg:inline-block">
-            Demo mode
+            {hasSupabaseEnv() ? "Live mode" : "Demo mode"}
           </span>
         </div>
 
