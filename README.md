@@ -38,7 +38,22 @@ Do not commit `.env.local`.
 
 Apply the migrations in `supabase/migrations/` to a Supabase project, then run `supabase/seed.sql` in a development database. The first Admin profile must reference an existing Supabase Auth user and is created as a deployment step.
 
-The database layer contains RLS, Staff-safe views, idempotent sale creation, stock-in, stock adjustment, sale voiding, product Admin RPCs, and audit movements. It has not yet been executed against a live Supabase project in this workspace; run the migrations in a test project before treating the app as production-ready.
+The database layer contains RLS, Staff-safe views, idempotent sale creation, stock-in, stock adjustment, sale voiding, product Admin RPCs, and audit movements. The local Supabase stack has been reset from all migrations and seed data, and the local integration gate passes. A remote/test project still needs its own migration smoke test before production use.
+
+### Local Supabase verification
+
+The repository includes `supabase/config.toml`, generated database types, and a repeatable integration check. With Docker Desktop running:
+
+```powershell
+pnpm dlx supabase start
+$status = pnpm dlx supabase status -o json | ConvertFrom-Json
+$env:SUPABASE_TEST_URL = $status.API_URL
+$env:SUPABASE_TEST_ANON_KEY = $status.ANON_KEY
+$env:SUPABASE_TEST_SERVICE_ROLE_KEY = $status.SERVICE_ROLE_KEY
+pnpm verify:local
+```
+
+The check creates temporary local Auth users and records, verifies RLS, concurrency, failed-transaction rollback, retry idempotency, oversell protection, and void safety, then removes its test data. Never place the service-role key in `.env.local` or commit it.
 
 ## Checks
 
@@ -59,7 +74,7 @@ The Reports page also accepts `month`, `paymentMethod`, `status`, `product`, `ca
 
 ## Release blockers
 
-- Generate Supabase TypeScript database types and run RLS/concurrency integration tests.
+- Run the local Supabase integration gate; the remaining database release check is a remote/test-project migration smoke test.
 - Configure Auth invitations, Vercel environment variables, backups, and a production smoke test.
 - Complete browser E2E, accessibility, and mobile-width QA.
 

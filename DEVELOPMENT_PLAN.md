@@ -98,20 +98,20 @@ All four commands pass from the current checkout. The login action remains inten
 - [x] P2.4 Implement the idempotent atomic `create_sale` RPC with a unique client request ID, row locks, server-side price snapshots, daily numbering, stock deduction, and movement history.
 - [x] P2.5 Implement Admin-only `void_sale`, `stock_in`, and `adjust_stock` RPC functions.
 - [x] P2.6 Create development seed data for the ten sample products. First Admin creation remains an authenticated deployment step.
-- [ ] P2.7 Generate TypeScript database types from the final schema.
+- [x] P2.7 Generate TypeScript database types from the final schema. (`src/types/database.ts` is generated from the local schema.)
 
 ### Required Database Tests
 
-- [ ] Two simultaneous orders cannot get the same daily order number.
-- [ ] Two simultaneous sales cannot oversell the last stock item.
-- [ ] A failed multi-item sale changes neither orders nor stock.
-- [ ] Retrying the same client request ID returns the original sale without deducting stock again.
-- [ ] Voiding restores stock once and cannot be repeated.
-- [ ] Staff cannot read cost/profit or execute Admin operations.
+- [x] Two simultaneous orders cannot get the same daily order number.
+- [x] Two simultaneous sales cannot oversell the last stock item.
+- [x] A failed multi-item sale changes neither orders nor stock.
+- [x] Retrying the same client request ID returns the original sale without deducting stock again.
+- [x] Voiding restores stock once and cannot be repeated.
+- [x] Staff cannot read cost/profit or execute Admin operations.
 
 ### Exit Check
 
-Pending: reset a local/test Supabase database from migrations, run the seed once, generate database types, and pass all database/RLS integration tests. No Supabase project credentials are present in this workspace, so this check is not claimed complete.
+Complete locally: `supabase db reset` applies all three migrations and the seed, `src/types/database.ts` is generated, and `pnpm verify:local` passes RLS, atomicity, concurrency, retry idempotency, oversell protection, and void-safety checks. A remote Supabase project still needs its own migration smoke test before release.
 
 ---
 
@@ -119,7 +119,7 @@ Pending: reset a local/test Supabase database from migrations, run the seed once
 
 **Goal:** Complete the workflows Staff and Admin use every day.
 
-**Progress:** Login action, logout, Next.js 16 session proxy, Admin/Staff dashboard split, product CRUD view, existing-profile role/activation management, inventory actions/history, sales history/void UI, reports, and a validated sale composer are implemented. Auth invitation/creation and live Supabase verification remain pending.
+**Progress:** Login action, logout, Next.js 16 session proxy, Admin/Staff dashboard split, product CRUD view, existing-profile role/activation management, inventory actions/history, sales history/void UI, reports, and a validated sale composer are implemented. Local Supabase Auth/RPC/RLS verification is complete; Auth invitation/creation and browser verification remain pending.
 
 ### 3A. Authentication and Navigation — 0.5–1 day
 
@@ -160,7 +160,7 @@ Pending: reset a local/test Supabase database from migrations, run the seed once
 
 **Goal:** Turn transaction data into trustworthy operational information.
 
-**Progress:** ExcelJS export route and Reports page are connected to shared report queries. The screen and workbook use month, date, payment, status, product, category, and Staff filters; summaries exclude voided sales, monthly profit is calculated from historical cost snapshots, the Dashboard uses live summary queries, and the workbook returns three styled worksheets with Excel tables. Search is grouped by Products and Sales; debounce and live Supabase verification remain pending.
+**Progress:** ExcelJS export route and Reports page are connected to shared report queries. The screen and workbook use month, date, payment, status, product, category, and Staff filters; summaries exclude voided sales, monthly profit is calculated from historical cost snapshots, the Dashboard uses live summary queries, and the workbook returns three styled worksheets with Excel tables. Search is grouped by Products and Sales; debounce and dedicated report-query integration coverage remain pending.
 
 ### Tasks
 
@@ -190,12 +190,12 @@ Use a fixed dataset to compare on-screen values, direct SQL results, and workboo
 
 **Goal:** Prove the V1 acceptance criteria and deploy safely.
 
-**Progress:** README, currency/report calculation tests, filtered Excel smoke test, and the full local typecheck/lint/test/build gate are implemented. Database integration tests, browser end-to-end tests, accessibility review, and deployment remain pending.
+**Progress:** README, currency/report calculation tests, filtered Excel smoke test, local Supabase RPC/concurrency/RLS integration tests, and the full local typecheck/lint/test/build gate are implemented. Browser end-to-end tests, full accessibility review, and deployment remain pending.
 
 ### Tasks
 
 - [ ] P5.1 Add unit tests for money calculations, dates, status derivation, and Zod schemas. (Currency and report-summary tests exist; dates/status/Zod coverage remains.)
-- [ ] P5.2 Add integration tests for RPC transactions, concurrency, RLS, and report queries.
+- [ ] P5.2 Add integration tests for RPC transactions, concurrency, RLS, and report queries. (RPC transactions, concurrency, and RLS are covered by `pnpm verify:local`; report-query integration remains.)
 - [ ] P5.3 Add end-to-end tests for login, product creation, sale, stock-in, adjustment, void, report, and export workflows.
 - [ ] P5.4 Verify keyboard access, focus states, labels, contrast, loading states, empty states, and error recovery. (Visible focus styles, semantic form labels/aria-labels, loading/error/empty states are implemented; full browser audit remains.)
 - [ ] P5.5 Test common desktop widths and iPhone widths at 375 px and 430 px.
@@ -240,6 +240,6 @@ These decisions are fixed for V1 unless the product owner changes them before im
 | Product deletion | Only when no related history exists |
 | Deployment | Vercel + Supabase |
 
-## First Development Action
+## Next Development Action
 
-Start **P1.1** only: scaffold the Next.js application in the current project directory, then verify the default application builds successfully before installing additional libraries.
+Start **P5.3**: add a browser E2E smoke path for login, product creation, sale, inventory update, void, report, and export. Keep the local Supabase verification command as the database gate before each browser run.

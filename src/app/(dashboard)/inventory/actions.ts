@@ -11,7 +11,7 @@ export type InventoryActionState = { error?: string; success?: string };
 export async function stockIn(_previousState: InventoryActionState, formData: FormData): Promise<InventoryActionState> {
   const values = stockInSchema.safeParse({ productId: formData.get("productId"), receiptDate: formData.get("receiptDate"), quantity: formData.get("quantity"), unitCost: formData.get("unitCost"), supplierName: formData.get("supplierName") ?? "" });
   if (!values.success) return { error: "Check the stock-in details." };
-  try { const supabase = await createClient(); const { error } = await supabase.rpc("stock_in", { p_product_id: values.data.productId, p_receipt_date: values.data.receiptDate, p_quantity: values.data.quantity, p_unit_cost: values.data.unitCost, p_supplier_name: values.data.supplierName || null }); return error ? { error: error.message } : { success: "Stock received." }; } catch { return { error: "Inventory is not connected yet. Add Supabase settings to .env.local." }; }
+  try { const supabase = await createClient(); const { error } = await supabase.rpc("stock_in", { p_product_id: values.data.productId, p_receipt_date: values.data.receiptDate, p_quantity: values.data.quantity, p_unit_cost: values.data.unitCost, p_supplier_name: values.data.supplierName || undefined }); return error ? { error: error.message } : { success: "Stock received." }; } catch { return { error: "Inventory is not connected yet. Add Supabase settings to .env.local." }; }
 }
 
 export async function adjustStock(_previousState: InventoryActionState, formData: FormData): Promise<InventoryActionState> {

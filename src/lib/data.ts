@@ -127,8 +127,10 @@ export async function listProducts(): Promise<Product[]> {
   const profile = await getCurrentProfile();
   if (!profile) return [];
 
-  const source = profile.role === "admin" ? "products" : "staff_products";
-  const { data, error } = await supabase.from(source).select("*").order("name");
+  const result = profile.role === "admin"
+    ? await supabase.from("products").select("*").order("name")
+    : await supabase.from("staff_products").select("*").order("name");
+  const { data, error } = result;
   if (error) throw new Error("Unable to load products.");
   return (data ?? []).map((row) => ({
     ...(row as Product),
@@ -171,11 +173,10 @@ export async function listSales(): Promise<SaleSummary[]> {
   const supabase = await createClient();
   const profile = await getCurrentProfile();
   if (!profile) return [];
-  const source = profile.role === "admin" ? "sales" : "staff_sales";
-  const columns = profile.role === "admin"
-    ? "id,sale_date,daily_order_number,payment_method,grand_total,status,created_at,staff_id,voided_at,void_reason"
-    : "id,sale_date,daily_order_number,payment_method,grand_total,status,created_at";
-  const { data, error } = await supabase.from(source).select(columns).order("sale_date", { ascending: false }).order("daily_order_number", { ascending: false }).limit(200);
+  const result = profile.role === "admin"
+    ? await supabase.from("sales").select("id,sale_date,daily_order_number,payment_method,grand_total,status,created_at,staff_id,voided_at,void_reason").order("sale_date", { ascending: false }).order("daily_order_number", { ascending: false }).limit(200)
+    : await supabase.from("staff_sales").select("id,sale_date,daily_order_number,payment_method,grand_total,status,created_at").order("sale_date", { ascending: false }).order("daily_order_number", { ascending: false }).limit(200);
+  const { data, error } = result;
   if (error) throw new Error("Unable to load sales history.");
 
   const rows = (data ?? []) as unknown as Record<string, unknown>[];
@@ -197,11 +198,10 @@ export async function listSaleItems(saleIds: string[]): Promise<SaleItem[]> {
   const supabase = await createClient();
   const profile = await getCurrentProfile();
   if (!profile) return [];
-  const source = profile.role === "admin" ? "sale_items" : "staff_sale_items";
-  const columns = profile.role === "admin"
-    ? "id,sale_id,product_id,product_code,product_name,quantity,unit_price,unit_cost,subtotal,cost_total,profit"
-    : "id,sale_id,product_code,product_name,quantity,unit_price,subtotal";
-  const { data, error } = await supabase.from(source).select(columns).in("sale_id", saleIds).order("id");
+  const result = profile.role === "admin"
+    ? await supabase.from("sale_items").select("id,sale_id,product_id,product_code,product_name,quantity,unit_price,unit_cost,subtotal,cost_total,profit").in("sale_id", saleIds).order("id")
+    : await supabase.from("staff_sale_items").select("id,sale_id,product_code,product_name,quantity,unit_price,subtotal").in("sale_id", saleIds).order("id");
+  const { data, error } = result;
   if (error) throw new Error("Unable to load sale items.");
   return ((data ?? []) as unknown as Record<string, unknown>[]).map((row) => ({
     id: String(row.id),

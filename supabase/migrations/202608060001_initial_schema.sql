@@ -284,7 +284,7 @@ begin
 
   insert into public.daily_order_counters (sale_date, next_order_number)
   values (p_sale_date, 2)
-  on conflict (sale_date) do update
+  on conflict on constraint daily_order_counters_pkey do update
     set next_order_number = public.daily_order_counters.next_order_number + 1
   returning next_order_number - 1 into order_number;
 
