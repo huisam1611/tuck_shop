@@ -79,6 +79,18 @@ export type ReportData = {
   summary: ReportSummary;
 };
 
+export type DashboardSummary = {
+  todayRevenue: number;
+  todayOrders: number;
+  monthRevenue: number;
+  monthProfit: number;
+  myTodayOrders: number;
+  activeProductCount: number;
+  lowStockProducts: { name: string; currentStock: number }[];
+  bestSelling: { name: string; sold: number; revenue: number }[];
+  dailyRevenue: number[];
+};
+
 export async function getCurrentProfile(): Promise<Profile | null> {
   if (!hasSupabaseEnv()) return { id: "demo-admin", name: "Alice", role: "admin", is_active: true };
 
@@ -314,5 +326,50 @@ export async function getReportData(filters: ReportFilters = {}): Promise<Report
     inventory,
     monthlyProfit,
     summary,
+  };
+}
+
+function businessDate() {
+  const formatter = new Intl.DateTimeFormat("en-CA", { timeZone: process.env.BUSINESS_TIMEZONE ?? "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit", day: "2-digit" });
+  const parts = Object.fromEntries(formatter.formatToParts(new Date()).map((part) => [part.type, part.value]));
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+
+export async function getDashboardSummary(profile: Profile | null): Promise<DashboardSummary> {
+  const [sales, products] = await Promise.all([listSales(), listProducts()]);
+  const today = businessDate();
+  const month = today.slice(0, 7);
+  const completedSales = sales.filter((sale) => sale.status === "completed");
+  const todaySales = completedSales.filter((sale) => sale.sale_date === today);
+  const monthSales = completedSales.filter((sale) => sale.sale_date.startsWith(month));
+  const items = profile?.role === "admin" ? await listSaleItems(monthSales.map((sale) => sale.id)) : [];
+  const saleById = new Map(monthSales.map((sale) => [sale.id, sale]));
+  const productTotals = new Map<string, { name: string; sold: number; revenue: number }>();
+  let monthProfit = 0;
+  for (const item of items) {
+    const sale = saleById.get(item.sale_id);
+    if (!sale) continue;
+    const current = productTotals.get(item.product_code) ?? { name: item.product_name, sold: 0, revenue: 0 };
+    current.sold += item.quantity;
+    current.revenue += item.subtotal;
+    productTotals.set(item.product_code, current);
+    monthProfit += item.profit ?? item.subtotal - (item.cost_total ?? 0);
+  }
+  const dailyRevenue = Array.from({ length: 14 }, (_, index) => {
+    const date = new Date(`${today}T00:00:00`);
+    date.setDate(date.getDate() - (13 - index));
+    const key = date.toISOString().slice(0, 10);
+    return completedSales.filter((sale) => sale.sale_date === key).reduce((sum, sale) => sum + sale.grand_total, 0);
+  });
+  return {
+    todayRevenue: todaySales.reduce((sum, sale) => sum + sale.grand_total, 0),
+    todayOrders: todaySales.length,
+    monthRevenue: monthSales.reduce((sum, sale) => sum + sale.grand_total, 0),
+    monthProfit,
+    myTodayOrders: todaySales.length,
+    activeProductCount: products.filter((product) => product.status === "active").length,
+    lowStockProducts: products.filter((product) => product.status === "active" && product.current_stock <= product.minimum_stock).sort((left, right) => left.current_stock - right.current_stock).slice(0, 5).map((product) => ({ name: product.name, currentStock: product.current_stock })),
+    bestSelling: [...productTotals.values()].sort((left, right) => right.sold - left.sold).slice(0, 10),
+    dailyRevenue,
   };
 }

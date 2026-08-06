@@ -1,8 +1,7 @@
-import Link from "next/link";
-
 import { getCurrentProfile, listProducts } from "@/lib/data";
 
 import { ProductForm } from "./product-form";
+import { ProductTable } from "./product-table";
 
 export const dynamic = "force-dynamic";
 
@@ -26,56 +25,7 @@ export default async function ProductsPage() {
 
       {canManage ? <section id="new-product" className="mb-6"><h2 className="mb-3 text-lg font-semibold text-slate-950">Add product</h2><ProductForm /></section> : null}
 
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="font-semibold text-slate-950">All products</p>
-            <p className="mt-1 text-sm text-slate-500">{products.length} products in the catalogue</p>
-          </div>
-          <input
-            aria-label="Search products"
-            placeholder="Search products…"
-            className="h-10 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"
-          />
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px] text-left text-sm">
-            <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-400">
-              <tr>
-                <th className="px-5 py-3 font-semibold">Product</th>
-                <th className="px-5 py-3 font-semibold">Category</th>
-                <th className="px-5 py-3 font-semibold">Cost</th>
-                <th className="px-5 py-3 font-semibold">Selling price</th>
-                <th className="px-5 py-3 font-semibold">Stock</th>
-                <th className="px-5 py-3 font-semibold">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {products.map((product) => {
-                const lowStock = product.current_stock <= product.minimum_stock;
-                return (
-                  <tr key={product.id} className="hover:bg-slate-50/70">
-                    <td className="px-5 py-4">
-                      {canManage ? <Link href={`/products/${product.id}`} className="font-semibold text-slate-800 hover:text-blue-700">{product.name}</Link> : <p className="font-semibold text-slate-800">{product.name}</p>}
-                      <p className="mt-1 text-xs text-slate-400">{product.product_code}</p>
-                    </td>
-                    <td className="px-5 py-4 text-slate-500">{product.category}</td>
-                    <td className="px-5 py-4 text-slate-500">{product.cost_price === undefined ? "—" : `RM${product.cost_price.toFixed(2)}`}</td>
-                    <td className="px-5 py-4 font-semibold text-slate-800">RM{product.selling_price.toFixed(2)}</td>
-                    <td className="px-5 py-4">
-                      <span className={lowStock ? "font-semibold text-amber-700" : "text-slate-600"}>{product.current_stock}</span>
-                      <span className="ml-2 text-xs text-slate-400">min {product.minimum_stock}</span>
-                    </td>
-                    <td className="px-5 py-4">
-                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${product.status === "active" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>{product.status === "active" ? "Active" : "Inactive"}</span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <ProductTable products={products} canManage={canManage} />
     </div>
   );
 }
