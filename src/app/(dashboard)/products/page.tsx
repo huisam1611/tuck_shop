@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { getCurrentProfile, listProducts } from "@/lib/data";
 
 import { ProductForm } from "./product-form";
@@ -28,7 +30,7 @@ export default async function ProductsPage() {
         <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="font-semibold text-slate-950">All products</p>
-            <p className="mt-1 text-sm text-slate-500">{products.length} active products in the catalogue</p>
+            <p className="mt-1 text-sm text-slate-500">{products.length} products in the catalogue</p>
           </div>
           <input
             aria-label="Search products"
@@ -54,7 +56,7 @@ export default async function ProductsPage() {
                 return (
                   <tr key={product.id} className="hover:bg-slate-50/70">
                     <td className="px-5 py-4">
-                      <p className="font-semibold text-slate-800">{product.name}</p>
+                      {canManage ? <Link href={`/products/${product.id}`} className="font-semibold text-slate-800 hover:text-blue-700">{product.name}</Link> : <p className="font-semibold text-slate-800">{product.name}</p>}
                       <p className="mt-1 text-xs text-slate-400">{product.product_code}</p>
                     </td>
                     <td className="px-5 py-4 text-slate-500">{product.category}</td>
@@ -65,7 +67,7 @@ export default async function ProductsPage() {
                       <span className="ml-2 text-xs text-slate-400">min {product.minimum_stock}</span>
                     </td>
                     <td className="px-5 py-4">
-                      <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">Active</span>
+                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${product.status === "active" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>{product.status === "active" ? "Active" : "Inactive"}</span>
                     </td>
                   </tr>
                 );

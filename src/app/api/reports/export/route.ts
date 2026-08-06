@@ -1,14 +1,9 @@
 import ExcelJS from "exceljs";
 import { NextRequest, NextResponse } from "next/server";
 
-import { listProducts } from "@/lib/data";
+import { getCurrentProfile, getReportData, type ReportFilters } from "@/lib/data";
 
 export const runtime = "nodejs";
-
-const demoSales = [
-  { saleDate: "2026-08-06", orderNumber: "2026-08-06-001", productCode: "P001", product: "Potato Chips", quantity: 2, unitPrice: 2, subtotal: 4, paymentMethod: "Cash", staff: "Alice", status: "Completed" },
-  { saleDate: "2026-08-06", orderNumber: "2026-08-06-002", productCode: "P003", product: "Coca-Cola Can", quantity: 1, unitPrice: 2, subtotal: 2, paymentMethod: "E-payment", staff: "Alice", status: "Completed" },
-];
 
 const headerFill = "173B67";
 const summaryFill = "DDF4E7";
@@ -60,54 +55,66 @@ function addTable(sheet: ExcelJS.Worksheet, name: string, columnCount: number) {
 }
 
 export async function GET(request: NextRequest) {
-  const from = request.nextUrl.searchParams.get("from");
-  const to = request.nextUrl.searchParams.get("to");
-  const sales = demoSales.filter((sale) => (!from || sale.saleDate >= from) && (!to || sale.saleDate <= to));
-  const products = await listProducts();
+  const profile = await getCurrentProfile();
+  if (!profile || profile.role !== "admin") return NextResponse.json({ error: "Admin role required" }, { status: 403 });
+  const params = request.nextUrl.searchParams;
+  const filters: ReportFilters = {
+    from: params.get("from") || undefined,
+    to: params.get("to") || undefined,
+    paymentMethod: params.get("paymentMethod") === "cash" || params.get("paymentMethod") === "e_payment" ? params.get("paymentMethod") as ReportFilters["paymentMethod"] : undefined,
+    status: params.get("status") === "completed" || params.get("status") === "voided" ? params.get("status") as ReportFilters["status"] : undefined,
+    product: params.get("product") || undefined,
+    category: params.get("category") || undefined,
+    staff: params.get("staff") || undefined,
+  };
+  const report = await getReportData(filters);
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "Tuck Shop";
   workbook.created = new Date();
 
   const salesSheet = workbook.addWorksheet("Sales Report");
   salesSheet.addRow(["Sale Date", "Order Number", "Product Code", "Product", "Quantity", "Unit Price", "Subtotal", "Payment Method", "Staff", "Sale Status"]);
-  sales.forEach((sale) => salesSheet.addRow([sale.saleDate, sale.orderNumber, sale.productCode, sale.product, sale.quantity, sale.unitPrice, sale.subtotal, sale.paymentMethod, sale.staff, sale.status]));
+  report.sales.forEach((sale) => salesSheet.addRow([new Date(`${sale.saleDate}T00:00:00`), sale.orderNumber, sale.productCode, sale.product, sale.quantity, sale.unitPrice, sale.subtotal, sale.paymentMethod, sale.staff, sale.status]));
+  salesSheet.getColumn(1).numFmt = "yyyy-mm-dd";
   salesSheet.getColumn(6).numFmt = '"RM"0.00';
   salesSheet.getColumn(7).numFmt = '"RM"0.00';
   addTable(salesSheet, "SalesReport", 10);
-  addSummary(salesSheet, "Total valid orders", sales.length);
-  addSummary(salesSheet, "Cash total", sales.filter((sale) => sale.paymentMethod === "Cash").reduce((sum, sale) => sum + sale.subtotal, 0));
-  addSummary(salesSheet, "E-payment total", sales.filter((sale) => sale.paymentMethod === "E-payment").reduce((sum, sale) => sum + sale.subtotal, 0));
-  addSummary(salesSheet, "Grand total revenue", sales.reduce((sum, sale) => sum + sale.subtotal, 0));
+  addSummary(salesSheet, "Total valid orders", report.summary.validOrders);
+  addSummary(salesSheet, "Cash total", report.summary.cashTotal);
+  addSummary(salesSheet, "E-payment total", report.summary.ePaymentTotal);
+  addSummary(salesSheet, "Grand total revenue", report.summary.revenue);
   styleSheet(salesSheet, 10);
 
   const inventorySheet = workbook.addWorksheet("Inventory Report");
   inventorySheet.addRow(["Product Code", "Product", "Category", "Current Stock", "Cost Price", "Selling Price", "Inventory Value", "Minimum Stock", "Stock Status"]);
-  products.forEach((product) => inventorySheet.addRow([product.product_code, product.name, product.category, product.current_stock, product.cost_price ?? null, product.selling_price, (product.cost_price ?? 0) * product.current_stock, product.minimum_stock, product.current_stock === 0 ? "Out of stock" : product.current_stock <= product.minimum_stock ? "Low stock" : "In stock"]));
+  report.inventory.forEach((product) => inventorySheet.addRow([product.product_code, product.name, product.category, product.current_stock, product.cost_price ?? null, product.selling_price, (product.cost_price ?? 0) * product.current_stock, product.minimum_stock, product.current_stock === 0 ? "Out of stock" : product.current_stock <= product.minimum_stock ? "Low stock" : "In stock"]));
   inventorySheet.getColumn(5).numFmt = '"RM"0.00';
   inventorySheet.getColumn(6).numFmt = '"RM"0.00';
   inventorySheet.getColumn(7).numFmt = '"RM"0.00';
   addTable(inventorySheet, "InventoryReport", 9);
-  addSummary(inventorySheet, "Total inventory value", products.reduce((sum, product) => sum + (product.cost_price ?? 0) * product.current_stock, 0));
+  addSummary(inventorySheet, "Total inventory value", report.inventory.reduce((sum, product) => sum + (product.cost_price ?? 0) * product.current_stock, 0));
   styleSheet(inventorySheet, 9);
 
   const profitSheet = workbook.addWorksheet("Monthly Profit Report");
   profitSheet.addRow(["Month", "Revenue", "Cost", "Profit", "Margin %"]);
-  profitSheet.addRow(["August 2026", 6, 3.6, 2.4, 0.4]);
+  report.monthlyProfit.forEach((month) => profitSheet.addRow([month.month, month.revenue, month.cost, month.profit, month.margin]));
   profitSheet.getColumn(2).numFmt = '"RM"0.00';
   profitSheet.getColumn(3).numFmt = '"RM"0.00';
   profitSheet.getColumn(4).numFmt = '"RM"0.00';
   profitSheet.getColumn(5).numFmt = "0.00%";
   addTable(profitSheet, "MonthlyProfitReport", 5);
-  addSummary(profitSheet, "Annual revenue", 6);
-  addSummary(profitSheet, "Annual cost", 3.6);
-  addSummary(profitSheet, "Annual profit", 2.4);
+  addSummary(profitSheet, "Annual revenue", report.summary.revenue);
+  addSummary(profitSheet, "Annual cost", report.summary.cost);
+  addSummary(profitSheet, "Annual profit", report.summary.profit);
   styleSheet(profitSheet, 5);
 
   const buffer = await workbook.xlsx.writeBuffer();
+  const now = new Date();
+  const stamp = now.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "").replace("T", "_");
   return new NextResponse(buffer, {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": 'attachment; filename="tuck-shop-report.xlsx"',
+      "Content-Disposition": `attachment; filename="tuck-shop-report_${stamp}.xlsx"`,
       "Cache-Control": "no-store",
     },
   });

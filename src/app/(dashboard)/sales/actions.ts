@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
@@ -11,6 +12,8 @@ const saleSchema = z.object({
 });
 
 export type SaleActionState = { error?: string; success?: string };
+
+const voidSaleSchema = z.object({ saleId: z.string().uuid(), reason: z.string().trim().min(1).max(240) });
 
 export async function createSale(_previousState: SaleActionState, formData: FormData): Promise<SaleActionState> {
   let rawItems: unknown;
@@ -38,6 +41,23 @@ export async function createSale(_previousState: SaleActionState, formData: Form
     if (error) return { error: error.message };
     const sale = Array.isArray(data) ? data[0] : data;
     return { success: `Order ${String(sale?.daily_order_number ?? "").padStart(3, "0")} saved.` };
+  } catch {
+    return { error: "Sales are not connected yet. Add Supabase settings to .env.local." };
+  }
+}
+
+export async function voidSale(_previousState: SaleActionState, formData: FormData): Promise<SaleActionState> {
+  const values = voidSaleSchema.safeParse({ saleId: formData.get("saleId"), reason: formData.get("reason") });
+  if (!values.success) return { error: "A void reason is required." };
+
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase.rpc("void_sale", { p_sale_id: values.data.saleId, p_reason: values.data.reason });
+    if (error) return { error: error.message };
+    revalidatePath("/sales");
+    revalidatePath("/sales/history");
+    revalidatePath("/inventory");
+    return { success: "Sale voided and stock restored." };
   } catch {
     return { error: "Sales are not connected yet. Add Supabase settings to .env.local." };
   }

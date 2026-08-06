@@ -119,21 +119,21 @@ Pending: reset a local/test Supabase database from migrations, run the seed once
 
 **Goal:** Complete the workflows Staff and Admin use every day.
 
-**Progress:** Login action, logout, Next.js 16 session proxy, Admin/Staff dashboard split, product read/create view, inventory read view with stock actions, reports shell, and a validated sale composer are implemented. Product edit/delete, user management, stock history, and live Supabase verification remain pending.
+**Progress:** Login action, logout, Next.js 16 session proxy, Admin/Staff dashboard split, product CRUD view, existing-profile role/activation management, inventory actions/history, sales history/void UI, reports, and a validated sale composer are implemented. Auth invitation/creation and live Supabase verification remain pending.
 
 ### 3A. Authentication and Navigation — 0.5–1 day
 
 - [ ] P3.1 Build email/password login and logout. (Implemented.)
 - [ ] P3.2 Add server-side session refresh, protected route handling, inactive-user rejection, and role-aware navigation. (Proxy, inactive-user redirect, and role-aware navigation are implemented; live-session verification is pending.)
-- [ ] P3.3 Add Admin user list, invitation/creation flow, activation, deactivation, and role changes.
+- [ ] P3.3 Add Admin user list, invitation/creation flow, activation, deactivation, and role changes. (Existing profile list, activation, and role changes are implemented; Auth invitation/creation is pending.)
 
 **Check:** Staff cannot open Admin URLs even by typing the address directly.
 
 ### 3B. Product Management — 1 day
 
 - [ ] P3.4 Build paginated product list with search, category/status filters, and low-stock badges. (Initial responsive read-only list is implemented.)
-- [ ] P3.5 Build Admin create/edit forms with shared Zod validation. (Create is implemented; edit is pending.)
-- [ ] P3.6 Implement activate/deactivate and safe-delete confirmation flows.
+- [ ] P3.5 Build Admin create/edit forms with shared Zod validation. (Create and edit are implemented.)
+- [ ] P3.6 Implement activate/deactivate and safe-delete confirmation flows. (Status changes and safe-delete confirmation are implemented.)
 
 **Check:** Products with history cannot be deleted, and inactive products cannot be sold.
 
@@ -141,8 +141,8 @@ Pending: reset a local/test Supabase database from migrations, run the seed once
 
 - [ ] P3.7 Build a touch-friendly order form with product selection, quantity controls, live subtotals, payment selection, and order total. (Initial composer is implemented.)
 - [ ] P3.8 Save through `create_sale`; prevent repeat submissions and show the generated order reference. (Initial action is implemented; live RPC verification is pending.)
-- [ ] P3.9 Build recent-sales and sale-detail screens.
-- [ ] P3.10 Build the Admin void dialog with mandatory reason.
+- [ ] P3.9 Build recent-sales and sale-detail screens. (Sales history with line items is implemented.)
+- [ ] P3.10 Build the Admin void dialog with mandatory reason. (Admin void form and protected RPC are implemented.)
 
 **Check:** A multi-item sale deducts each stock quantity exactly once; retrying after a timeout cannot create an accidental duplicate.
 
@@ -150,7 +150,7 @@ Pending: reset a local/test Supabase database from migrations, run the seed once
 
 - [ ] P3.11 Build inventory list and low/out-of-stock views. (Initial responsive read-only list is implemented.)
 - [ ] P3.12 Build stock-in and stock-adjustment forms. (Initial actions/forms are implemented; live RPC verification is pending.)
-- [ ] P3.13 Build paginated, filterable, read-only stock movement history.
+- [ ] P3.13 Build paginated, filterable, read-only stock movement history. (Read-only Admin history table is implemented; pagination/filtering remains.)
 
 **Check:** Every stock change has matching before/after values and an audit reference.
 
@@ -160,17 +160,17 @@ Pending: reset a local/test Supabase database from migrations, run the seed once
 
 **Goal:** Turn transaction data into trustworthy operational information.
 
-**Progress:** ExcelJS export route and Reports download form are implemented. The workbook returns three styled worksheets, applies demo `from/to` filters, adds Excel table objects, and was verified through the production server; live report queries and summary tests remain pending.
+**Progress:** ExcelJS export route and Reports page are connected to shared report queries. The screen and workbook use date, payment, status, product, category, and Staff filters; summaries exclude voided sales, monthly profit is calculated from historical cost snapshots, and the workbook returns three styled worksheets with Excel tables. Dashboard charts, global search, and live Supabase verification remain pending.
 
 ### Tasks
 
 - [ ] P4.1 Build permission-aware Admin and Staff dashboards.
 - [ ] P4.2 Add monthly revenue trend and top-10 product charts with accessible table alternatives.
-- [ ] P4.3 Build daily sales, monthly sales/profit, inventory, best-selling, and low-stock reports.
-- [ ] P4.4 Add date range, month/year, product, category, payment, Staff, and status filters using URL query parameters.
+- [ ] P4.3 Build daily sales, monthly sales/profit, inventory, best-selling, and low-stock reports. (Daily detail, monthly profit, and inventory export data are implemented; best-selling/low-stock report cards remain.)
+- [ ] P4.4 Add date range, month/year, product, category, payment, Staff, and status filters using URL query parameters. (Date range, product, category, payment, Staff, and status filters are implemented; explicit month/year controls remain.)
 - [ ] P4.5 Build global search grouped into Product and Sale results.
-- [ ] P4.6 Generate the three-worksheet Excel workbook using the active report filters. (Demo `from/to` filtering is implemented; live data is pending.)
-- [ ] P4.7 Apply required Excel styles, number/date formats, filters, frozen headers, tables, summaries, and safe column widths. (Implemented for the demo workbook.)
+- [ ] P4.6 Generate the three-worksheet Excel workbook using the active report filters. (Live shared report data and all current URL filters are implemented.)
+  - [ ] P4.7 Apply required Excel styles, number/date formats, filters, frozen headers, tables, summaries, and safe column widths. (Implemented and smoke-tested with filtered data.)
 
 ### Required Calculation Tests
 
@@ -190,11 +190,11 @@ Use a fixed dataset to compare on-screen values, direct SQL results, and workboo
 
 **Goal:** Prove the V1 acceptance criteria and deploy safely.
 
-**Progress:** README, a currency smoke test, and the full local typecheck/lint/test/build gate are implemented. Database integration tests, browser end-to-end tests, accessibility review, and deployment remain pending.
+**Progress:** README, currency/report calculation tests, filtered Excel smoke test, and the full local typecheck/lint/test/build gate are implemented. Database integration tests, browser end-to-end tests, accessibility review, and deployment remain pending.
 
 ### Tasks
 
-- [ ] P5.1 Add unit tests for money calculations, dates, status derivation, and Zod schemas. (Foundation currency smoke test exists; domain tests are pending.)
+- [ ] P5.1 Add unit tests for money calculations, dates, status derivation, and Zod schemas. (Currency and report-summary tests exist; dates/status/Zod coverage remains.)
 - [ ] P5.2 Add integration tests for RPC transactions, concurrency, RLS, and report queries.
 - [ ] P5.3 Add end-to-end tests for login, product creation, sale, stock-in, adjustment, void, report, and export workflows.
 - [ ] P5.4 Verify keyboard access, focus states, labels, contrast, loading states, empty states, and error recovery.

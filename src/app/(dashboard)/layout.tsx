@@ -9,13 +9,14 @@ const navigation = [
   { href: "/sales", label: "Sales", icon: "＋" },
   { href: "/inventory", label: "Inventory", icon: "◫" },
   { href: "/products", label: "Products", icon: "◇" },
+  { href: "/users", label: "Users", icon: "♙" },
   { href: "/reports", label: "Reports", icon: "▤" },
 ];
 
 export default async function DashboardLayout({ children }: LayoutProps<"/">) {
   const profile = await getCurrentProfile();
   if (profile && !profile.is_active) redirect("/login");
-  const visibleNavigation = profile?.role === "staff" ? navigation.filter((item) => item.href !== "/reports") : navigation;
+  const visibleNavigation = profile?.role === "staff" ? navigation.filter((item) => item.href !== "/reports" && item.href !== "/users") : navigation;
 
   return (
     <div className="min-h-screen bg-[#f5f7fb] lg:flex">
