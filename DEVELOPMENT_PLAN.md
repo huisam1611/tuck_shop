@@ -190,7 +190,7 @@ Use a fixed dataset to compare on-screen values, direct SQL results, and workboo
 
 **Goal:** Prove the V1 acceptance criteria and deploy safely.
 
-**Progress:** README, currency/report calculation tests, filtered Excel smoke test, local Supabase RPC/concurrency/RLS integration tests, a production HTTP smoke script, and the full local typecheck/lint/test/build gate are implemented. Browser end-to-end tests, full accessibility review, and deployment remain pending.
+**Progress:** README, currency/report calculation tests, filtered Excel smoke test, local Supabase RPC/concurrency/RLS integration tests, a production HTTP smoke script, and the full local typecheck/lint/test/build gate are implemented. The production Vercel deployment smoke now passes; browser end-to-end tests, full accessibility review, and final security review remain pending.
 
 ### Tasks
 
@@ -201,7 +201,7 @@ Use a fixed dataset to compare on-screen values, direct SQL results, and workboo
 - [ ] P5.5 Test common desktop widths and iPhone widths at 375 px and 430 px.
 - [ ] P5.6 Review security headers, secrets, service-role usage, server authorization, and dependency audit results. (Headers, server-only guard, build secret scan, and unauthenticated export boundary pass; `pnpm audit --prod` reports one moderate transitive `uuid` advisory through ExcelJS, so the release gate remains open.)
 - [x] P5.7 Write README instructions for setup, migrations, seed, tests, first Admin, deployment, backup, and recovery. (Runbook and release smoke command are documented; project-specific backup-plan selection remains an operator task.)
-- [ ] P5.8 Configure Supabase production migrations and Vercel environment variables, then perform a deployment smoke test.
+- [x] P5.8 Configure Supabase production migrations and Vercel environment variables, then perform a deployment smoke test. (Production `/login` returns 200, unauthenticated export returns 403, and required security headers are present.)
 
 ### Release Gate
 
