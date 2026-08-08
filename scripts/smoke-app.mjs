@@ -1,7 +1,9 @@
 const baseUrl = process.env.SMOKE_BASE_URL ?? "http://localhost:3000";
 
 async function check(path, expectedStatus) {
-  const response = await fetch(new URL(path, baseUrl), { redirect: "manual" });
+  const response = await fetch(new URL(path, baseUrl), {
+    redirect: path === "/api/reports/export" ? "manual" : "follow",
+  });
   const location = response.headers.get("location");
   const redirectPath = location ? new URL(location, baseUrl).pathname : null;
   const loginRedirect = path === "/api/reports/export"
