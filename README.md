@@ -78,6 +78,16 @@ The report endpoint smoke test can be run after `pnpm build` and `pnpm start`:
 GET /api/reports/export?from=2026-08-06&to=2026-08-06
 ```
 
+The minimal release smoke check verifies the public login page, the unauthenticated export boundary, and required security headers:
+
+```powershell
+pnpm build
+pnpm start
+pnpm smoke:app
+```
+
+Set `SMOKE_BASE_URL` when checking a Preview deployment.
+
 The Reports page also accepts `month`, `paymentMethod`, `status`, `product`, `category`, and `staff` query parameters. Demo mode is intentionally read-only and uses sample data.
 
 ## Release blockers
@@ -85,6 +95,14 @@ The Reports page also accepts `month`, `paymentMethod`, `status`, `product`, `ca
 - Run the local Supabase integration gate; the remaining database release check is a remote/test-project migration smoke test.
 - Set the server-only `SUPABASE_SERVICE_ROLE_KEY`, then complete Staff smoke tests, Vercel environment variables, backups, and a production smoke test.
 - Complete browser E2E, accessibility, and mobile-width QA.
+- `pnpm audit --prod` currently reports one moderate transitive `uuid` advisory through `exceljs`; review or upgrade that dependency before production release.
+
+## Deployment, backup, and recovery runbook
+
+1. Apply every file in `supabase/migrations/` to the target Supabase project. Do not run `supabase/seed.sql` in production.
+2. In Vercel, set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `BUSINESS_TIMEZONE` for the deployment environments. Set `SUPABASE_SERVICE_ROLE_KEY` only when the `/users` Admin account-creation flow is needed; keep it server-only.
+3. Before a schema change or bulk data operation, create a Supabase backup/export using the controls available for the project plan and record the migration commit SHA.
+4. For recovery, restore into a separate Supabase project first, apply the migrations, rotate exposed keys if necessary, update Vercel variables, and run `pnpm smoke:app` against the deployment before switching traffic.
 
 ## Development plan
 

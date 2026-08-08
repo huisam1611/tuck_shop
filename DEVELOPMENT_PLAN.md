@@ -190,7 +190,7 @@ Use a fixed dataset to compare on-screen values, direct SQL results, and workboo
 
 **Goal:** Prove the V1 acceptance criteria and deploy safely.
 
-**Progress:** README, currency/report calculation tests, filtered Excel smoke test, local Supabase RPC/concurrency/RLS integration tests, and the full local typecheck/lint/test/build gate are implemented. Browser end-to-end tests, full accessibility review, and deployment remain pending.
+**Progress:** README, currency/report calculation tests, filtered Excel smoke test, local Supabase RPC/concurrency/RLS integration tests, a production HTTP smoke script, and the full local typecheck/lint/test/build gate are implemented. Browser end-to-end tests, full accessibility review, and deployment remain pending.
 
 ### Tasks
 
@@ -199,8 +199,8 @@ Use a fixed dataset to compare on-screen values, direct SQL results, and workboo
 - [ ] P5.3 Add end-to-end tests for login, product creation, sale, stock-in, adjustment, void, report, and export workflows.
 - [ ] P5.4 Verify keyboard access, focus states, labels, contrast, loading states, empty states, and error recovery. (Visible focus styles, semantic form labels/aria-labels, loading/error/empty states are implemented; full browser audit remains.)
 - [ ] P5.5 Test common desktop widths and iPhone widths at 375 px and 430 px.
-- [ ] P5.6 Review security headers, secrets, service-role usage, server authorization, and dependency audit results. (Basic response security headers and server-side role guards are implemented; full security review remains.)
-- [ ] P5.7 Write README instructions for setup, migrations, seed, tests, first Admin, deployment, backup, and recovery. (Setup, migrations, seed, tests, first Admin, and release blockers are documented; deployment/backup/recovery details remain.)
+- [ ] P5.6 Review security headers, secrets, service-role usage, server authorization, and dependency audit results. (Headers, server-only guard, build secret scan, and unauthenticated export boundary pass; `pnpm audit --prod` reports one moderate transitive `uuid` advisory through ExcelJS, so the release gate remains open.)
+- [x] P5.7 Write README instructions for setup, migrations, seed, tests, first Admin, deployment, backup, and recovery. (Runbook and release smoke command are documented; project-specific backup-plan selection remains an operator task.)
 - [ ] P5.8 Configure Supabase production migrations and Vercel environment variables, then perform a deployment smoke test.
 
 ### Release Gate
@@ -242,4 +242,4 @@ These decisions are fixed for V1 unless the product owner changes them before im
 
 ## Next Development Action
 
-Start **P5.3**: add a browser E2E smoke path for login, product creation, sale, inventory update, void, report, and export. Keep the local Supabase verification command as the database gate before each browser run.
+Start **P5.3**: add a browser E2E smoke path for login, product creation, sale, inventory update, void, report, and export. Keep the local Supabase verification command and `pnpm smoke:app` as the database and HTTP gates before each browser run.
