@@ -32,6 +32,14 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 BUSINESS_TIMEZONE=Asia/Kuala_Lumpur
 ```
 
+To let an Admin create Staff or Admin accounts from `/users`, also set this server-only value:
+
+```text
+SUPABASE_SERVICE_ROLE_KEY=...
+```
+
+Use the Supabase Project Settings API service-role key. Never prefix it with `NEXT_PUBLIC_`, expose it to browser code, or commit it.
+
 Do not commit `.env.local`.
 
 ## Database setup
@@ -75,7 +83,7 @@ The Reports page also accepts `month`, `paymentMethod`, `status`, `product`, `ca
 ## Release blockers
 
 - Run the local Supabase integration gate; the remaining database release check is a remote/test-project migration smoke test.
-- Configure Auth invitations, Vercel environment variables, backups, and a production smoke test.
+- Set the server-only `SUPABASE_SERVICE_ROLE_KEY`, then complete Staff smoke tests, Vercel environment variables, backups, and a production smoke test.
 - Complete browser E2E, accessibility, and mobile-width QA.
 
 ## Development plan

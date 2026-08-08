@@ -119,13 +119,13 @@ Complete locally: `supabase db reset` applies all three migrations and the seed,
 
 **Goal:** Complete the workflows Staff and Admin use every day.
 
-**Progress:** Login action, logout, Next.js 16 session proxy, Admin/Staff dashboard split, product CRUD view, existing-profile role/activation management, inventory actions/history, sales history/void UI, reports, and a validated sale composer are implemented. Local Supabase Auth/RPC/RLS verification is complete; Auth invitation/creation and browser verification remain pending.
+**Progress:** Login action, logout, Next.js 16 session proxy, Admin/Staff dashboard split, product CRUD view, Admin user creation/profile management, inventory actions/history, sales history/void UI, reports, and a validated sale composer are implemented. Local Supabase Auth/RPC/RLS verification is complete; server-key configuration and live browser workflow verification remain pending.
 
 ### 3A. Authentication and Navigation — 0.5–1 day
 
 - [ ] P3.1 Build email/password login and logout. (Implemented.)
 - [ ] P3.2 Add server-side session refresh, protected route handling, inactive-user rejection, and role-aware navigation. (Proxy, inactive-user redirect, and role-aware navigation are implemented; live-session verification is pending.)
-- [ ] P3.3 Add Admin user list, invitation/creation flow, activation, deactivation, and role changes. (Existing profile list, activation, and role changes are implemented; Auth invitation/creation is pending.)
+- [x] P3.3 Add Admin user list, account creation, activation, deactivation, and role changes. (Email invitation remains deferred; the Admin can create confirmed email/password accounts through the server-only Supabase Admin API.)
 
 **Check:** Staff cannot open Admin URLs even by typing the address directly.
 
