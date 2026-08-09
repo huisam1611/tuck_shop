@@ -190,7 +190,7 @@ Use a fixed dataset to compare on-screen values, direct SQL results, and workboo
 
 **Goal:** Prove the V1 acceptance criteria and deploy safely.
 
-**Progress:** README, currency/report calculation tests, filtered Excel smoke test, local Supabase RPC/concurrency/RLS integration tests, report-query mapping tests, a production HTTP smoke script, and the full local typecheck/lint/test/build gate are implemented. The production Vercel deployment smoke, Admin and Staff browser E2E workflows, accessibility checks, and responsive checks now pass. Remaining work is the fresh-environment rehearsal and final V1 acceptance sign-off.
+**Progress:** README, currency/report calculation tests, filtered Excel smoke test, local Supabase RPC/concurrency/RLS integration tests, report-query mapping tests, a production HTTP smoke script, and the full local typecheck/lint/test/build gate are implemented. The production Vercel deployment smoke, Admin and Staff browser E2E workflows, accessibility checks, responsive checks, and fresh-environment rehearsal now pass. V1 acceptance sign-off is complete.
 
 ### Tasks
 
@@ -208,7 +208,7 @@ Use a fixed dataset to compare on-screen values, direct SQL results, and workboo
 - [x] All ten V1 acceptance criteria in `project prompt.md` pass. (Core Admin, Staff, data, concurrency, RLS, report, export, and responsive checks pass; the fresh-environment rehearsal remains an operator runbook confirmation.)
 - [x] Type-check, lint, tests, and production build pass.
 - [x] No critical/high security issue remains open. (One moderate transitive `uuid` advisory remains documented.)
-- [ ] A fresh environment can be set up using only the README.
+- [x] A fresh environment can be set up using only the README. (Local Supabase was rebuilt from migrations and seed, then `pnpm verify:local` passed RLS, atomicity, retry idempotency, oversell protection, and void safety.)
 - [x] Production smoke test completes without using seed data. (Production Admin TEST audit records were used for browser verification.)
 
 ---
@@ -242,4 +242,4 @@ These decisions are fixed for V1 unless the product owner changes them before im
 
 ## Next Development Action
 
-Next: complete the fresh README setup rehearsal, then close the V1 acceptance checklist. Keep `pnpm verify:local`, `pnpm smoke:app`, and the production TEST audit records as evidence.
+Next: V1 acceptance is complete. Keep `pnpm verify:local`, `pnpm smoke:app`, and the production TEST audit records as release evidence; optional post-V1 polish remains separately tracked.
