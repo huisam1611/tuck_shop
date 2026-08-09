@@ -20,7 +20,7 @@ export function StatCard({ label, value, detail, tone }: StatCardProps) {
         <span className={`grid size-9 place-items-center rounded-xl text-sm font-bold ${tones[tone]}`}>↗</span>
       </div>
       <p className="mt-4 text-2xl font-semibold tracking-tight text-slate-950">{value}</p>
-      <p className="mt-1 text-xs font-medium text-slate-400">{detail}</p>
+      <p className="mt-1 text-xs font-medium text-slate-500">{detail}</p>
     </article>
   );
 }

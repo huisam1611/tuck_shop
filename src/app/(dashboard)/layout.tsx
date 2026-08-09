@@ -30,7 +30,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/">) {
             </span>
             <span>
               <span className="block text-sm font-bold text-slate-950">Tuck Shop</span>
-              <span className="block text-xs text-slate-400">Sales & inventory</span>
+              <span className="block text-xs text-slate-500">Sales & inventory</span>
             </span>
           </Link>
           <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 lg:mt-8 lg:inline-block">

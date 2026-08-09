@@ -54,7 +54,7 @@ export function SaleComposer({ products }: { products: SaleProduct[] }) {
         <div className="mt-7 divide-y divide-slate-100">
           {cart.length === 0 ? <p className="rounded-2xl bg-slate-50 px-4 py-10 text-center text-sm text-slate-500">Add products to start this order.</p> : cart.map((item) => (
             <div key={item.id} className="flex items-center justify-between gap-4 py-4">
-              <div><p className="font-semibold text-slate-800">{item.name}</p><p className="mt-1 text-xs text-slate-400">{item.quantity} × RM{item.selling_price.toFixed(2)}</p></div>
+              <div><p className="font-semibold text-slate-800">{item.name}</p><p className="mt-1 text-xs text-slate-500">{item.quantity} × RM{item.selling_price.toFixed(2)}</p></div>
               <div className="flex items-center gap-4"><span className="font-semibold text-slate-800">RM{(item.quantity * item.selling_price).toFixed(2)}</span><button type="button" onClick={() => setCart((current) => current.filter((entry) => entry.id !== item.id))} className="text-xs font-semibold text-rose-600 hover:text-rose-700">Remove</button></div>
             </div>
           ))}
