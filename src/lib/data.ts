@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { hasSupabaseEnv } from "@/lib/env";
+import { getBusinessDate, normalizePaymentMethod, normalizeSaleStatus } from "@/lib/domain";
+import { buildReportRows, type ReportFilters } from "@/lib/report-query";
 import { summarizeReportRows, type MonthlyProfit, type ReportSaleRow, type ReportSummary } from "@/lib/reporting";
 
 export type { MonthlyProfit, ReportSaleRow, ReportSummary } from "@/lib/reporting";
@@ -62,16 +64,7 @@ export type StockMovement = {
   created_at: string;
 };
 
-export type ReportFilters = {
-  from?: string;
-  to?: string;
-  month?: string;
-  paymentMethod?: "cash" | "e_payment";
-  status?: "completed" | "voided";
-  product?: string;
-  category?: string;
-  staff?: string;
-};
+export type { ReportFilters } from "@/lib/report-query";
 
 export type ReportData = {
   sales: ReportSaleRow[];
@@ -156,9 +149,9 @@ function toSaleSummary(row: Record<string, unknown>, staffName?: string): SaleSu
     id: String(row.id),
     sale_date: String(row.sale_date),
     daily_order_number: Number(row.daily_order_number),
-    payment_method: row.payment_method === "e_payment" ? "e_payment" : "cash",
+    payment_method: normalizePaymentMethod(row.payment_method),
     grand_total: Number(row.grand_total),
-    status: row.status === "voided" ? "voided" : "completed",
+    status: normalizeSaleStatus(row.status),
     created_at: String(row.created_at),
     staff_id: row.staff_id ? String(row.staff_id) : undefined,
     staff_name: staffName,
@@ -286,47 +279,10 @@ export async function listStockMovements(): Promise<StockMovement[]> {
   });
 }
 
-function matchesText(value: string, filter?: string) {
-  return !filter || value.toLowerCase().includes(filter.trim().toLowerCase());
-}
-
 export async function getReportData(filters: ReportFilters = {}): Promise<ReportData> {
   const [sales, inventory] = await Promise.all([listSales(), listProducts()]);
   const items = await listSaleItems(sales.map((sale) => sale.id));
-  const productsById = new Map(inventory.map((product) => [product.id, product]));
-  const filteredSales = sales.filter((sale) => (
-    (!filters.from || sale.sale_date >= filters.from)
-    && (!filters.to || sale.sale_date <= filters.to)
-    && (!filters.month || sale.sale_date.startsWith(filters.month))
-    && (!filters.paymentMethod || sale.payment_method === filters.paymentMethod)
-    && (!filters.status || sale.status === filters.status)
-    && matchesText(sale.staff_name ?? "", filters.staff)
-  ));
-  const rows = items.flatMap((item) => {
-    const sale = filteredSales.find((entry) => entry.id === item.sale_id);
-    if (!sale) return [];
-    const product = productsById.get(item.product_id);
-    const category = product?.category ?? "Unknown";
-    if (!matchesText(item.product_code, filters.product) && !matchesText(item.product_name, filters.product)) return [];
-    if (!matchesText(category, filters.category)) return [];
-    return [{
-      saleId: sale.id,
-      saleDate: sale.sale_date,
-      orderNumber: `${sale.sale_date}-${String(sale.daily_order_number).padStart(3, "0")}`,
-      productCode: item.product_code,
-      product: item.product_name,
-      category,
-      quantity: item.quantity,
-      unitPrice: item.unit_price,
-      unitCost: item.unit_cost ?? 0,
-      subtotal: item.subtotal,
-      costTotal: item.cost_total ?? 0,
-      profit: item.profit ?? item.subtotal - (item.cost_total ?? 0),
-      paymentMethod: sale.payment_method === "cash" ? "Cash" : "E-payment",
-      staff: sale.staff_name ?? "Current staff",
-      status: sale.status === "completed" ? "Completed" : "Voided",
-    } satisfies ReportSaleRow];
-  });
+  const rows = buildReportRows(sales, items, inventory, filters);
   const { monthlyProfit, summary } = summarizeReportRows(rows);
   return {
     sales: rows,
@@ -336,15 +292,9 @@ export async function getReportData(filters: ReportFilters = {}): Promise<Report
   };
 }
 
-function businessDate() {
-  const formatter = new Intl.DateTimeFormat("en-CA", { timeZone: process.env.BUSINESS_TIMEZONE ?? "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit", day: "2-digit" });
-  const parts = Object.fromEntries(formatter.formatToParts(new Date()).map((part) => [part.type, part.value]));
-  return `${parts.year}-${parts.month}-${parts.day}`;
-}
-
 export async function getDashboardSummary(profile: Profile | null): Promise<DashboardSummary> {
   const [sales, products] = await Promise.all([listSales(), listProducts()]);
-  const today = businessDate();
+  const today = getBusinessDate();
   const month = today.slice(0, 7);
   const completedSales = sales.filter((sale) => sale.status === "completed");
   const todaySales = completedSales.filter((sale) => sale.sale_date === today);

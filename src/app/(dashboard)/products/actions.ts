@@ -1,23 +1,9 @@
 "use server";
 
-import { z } from "zod";
 import { revalidatePath } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
-
-const productSchema = z.object({
-  productCode: z.string().trim().min(1).max(40),
-  name: z.string().trim().min(1).max(120),
-  category: z.string().trim().min(1).max(80),
-  costPrice: z.coerce.number().min(0),
-  sellingPrice: z.coerce.number().min(0),
-  minimumStock: z.coerce.number().int().min(0),
-});
-
-const updateProductSchema = productSchema.extend({
-  productId: z.string().uuid(),
-  status: z.enum(["active", "inactive"]),
-});
+import { productSchema, updateProductSchema } from "@/lib/validation";
 
 export type ProductActionState = { error?: string; success?: string };
 
@@ -80,7 +66,7 @@ export async function updateProduct(_previousState: ProductActionState, formData
 }
 
 export async function deleteProduct(_previousState: ProductActionState, formData: FormData): Promise<ProductActionState> {
-  const productId = z.string().uuid().safeParse(formData.get("productId"));
+  const productId = updateProductSchema.shape.productId.safeParse(formData.get("productId"));
   if (!productId.success) return { error: "This product cannot be deleted in demo mode." };
 
   try {

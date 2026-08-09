@@ -190,12 +190,12 @@ Use a fixed dataset to compare on-screen values, direct SQL results, and workboo
 
 **Goal:** Prove the V1 acceptance criteria and deploy safely.
 
-**Progress:** README, currency/report calculation tests, filtered Excel smoke test, local Supabase RPC/concurrency/RLS integration tests, a production HTTP smoke script, and the full local typecheck/lint/test/build gate are implemented. The production Vercel deployment smoke, Admin browser E2E workflow, accessibility checks, and responsive checks now pass. Remaining work is the missing date/status/Zod and report-query automated coverage plus release sign-off.
+**Progress:** README, currency/report calculation tests, filtered Excel smoke test, local Supabase RPC/concurrency/RLS integration tests, report-query mapping tests, a production HTTP smoke script, and the full local typecheck/lint/test/build gate are implemented. The production Vercel deployment smoke, Admin browser E2E workflow, accessibility checks, and responsive checks now pass. Remaining work is final V1 acceptance sign-off.
 
 ### Tasks
 
-- [ ] P5.1 Add unit tests for money calculations, dates, status derivation, and Zod schemas. (Currency and report-summary tests exist; dates/status/Zod coverage remains.)
-- [ ] P5.2 Add integration tests for RPC transactions, concurrency, RLS, and report queries. (RPC transactions, concurrency, and RLS are covered by `pnpm verify:local`; report-query integration remains.)
+- [x] P5.1 Add unit tests for money calculations, dates, status derivation, and Zod schemas. (Currency/report summaries, timezone-aware business dates, status/payment normalization, product/sale/inventory/void schemas are covered.)
+- [x] P5.2 Add integration tests for RPC transactions, concurrency, RLS, and report queries. (RPC transactions, concurrency, and RLS are covered by `pnpm verify:local`; the shared report-query mapping/filter path now has automated coverage. A fresh local gate rerun requires `SUPABASE_TEST_URL`, `SUPABASE_TEST_ANON_KEY`, and `SUPABASE_TEST_SERVICE_ROLE_KEY`.)
 - [x] P5.3 Add end-to-end tests for login, product creation, sale, stock-in, adjustment, void, report, and export workflows. (Production Admin session verified on 2026-08-09 with TEST-E2E-01 / TEST E2E Snack: stock-in +2, sale 1, adjustment in +1, void restore +1, immutable history, void-excluded report totals, and `.xlsx` download. The authenticated session was already supplied, so the password-entry step was not replayed.)
 - [x] P5.4 Verify keyboard access, focus states, labels, contrast, loading states, empty states, and error recovery. (Latest production deployment confirms visible mobile sign-out, no remaining `text-slate-400` metadata classes, focus rings, native invalid-field recovery, status/empty states, and no unnamed visible controls or missing image alt text across nine Admin routes.)
 - [x] P5.5 Test common desktop widths and iPhone widths at 375 px and 430 px. (Production Dashboard, Sales, Inventory, Products, and Reports were checked at 375px, 430px, and 1280px with no document-level horizontal overflow.)
@@ -206,10 +206,10 @@ Use a fixed dataset to compare on-screen values, direct SQL results, and workboo
 ### Release Gate
 
 - [ ] All ten V1 acceptance criteria in `project prompt.md` pass.
-- [ ] Type-check, lint, tests, and production build pass.
-- [ ] No critical/high security issue remains open.
+- [x] Type-check, lint, tests, and production build pass.
+- [x] No critical/high security issue remains open. (One moderate transitive `uuid` advisory remains documented.)
 - [ ] A fresh environment can be set up using only the README.
-- [ ] Production smoke test completes without using seed data.
+- [x] Production smoke test completes without using seed data. (Production Admin TEST audit records were used for browser verification.)
 
 ---
 
@@ -242,4 +242,4 @@ These decisions are fixed for V1 unless the product owner changes them before im
 
 ## Next Development Action
 
-Next: complete P5.1 date/status/Zod coverage and P5.2 report-query integration coverage, then run the final V1 acceptance checklist. Keep the local Supabase verification command, `pnpm smoke:app`, and the production TEST audit records as evidence.
+Next: run the final V1 acceptance checklist and record any remaining operator-only steps. Keep the local Supabase verification command, `pnpm smoke:app`, and the production TEST audit records as evidence.

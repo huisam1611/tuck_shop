@@ -1,20 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
-
-const saleSchema = z.object({
-  saleDate: z.string().date(),
-  paymentMethod: z.enum(["cash", "e_payment"]),
-  items: z.array(z.object({ product_id: z.string().uuid(), quantity: z.number().int().positive() })).min(1),
-  clientRequestId: z.string().uuid().optional(),
-});
+import { saleSchema, voidSaleSchema } from "@/lib/validation";
 
 export type SaleActionState = { error?: string; success?: string };
-
-const voidSaleSchema = z.object({ saleId: z.string().uuid(), reason: z.string().trim().min(1).max(240) });
 
 export async function createSale(_previousState: SaleActionState, formData: FormData): Promise<SaleActionState> {
   let rawItems: unknown;

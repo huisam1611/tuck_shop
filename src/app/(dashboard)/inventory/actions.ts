@@ -1,11 +1,8 @@
 "use server";
 
-import { z } from "zod";
-
 import { createClient } from "@/lib/supabase/server";
+import { adjustmentSchema, stockInSchema } from "@/lib/validation";
 
-const stockInSchema = z.object({ productId: z.string().uuid(), receiptDate: z.string().date(), quantity: z.coerce.number().int().positive(), unitCost: z.coerce.number().min(0), supplierName: z.string().trim().max(160) });
-const adjustmentSchema = z.object({ productId: z.string().uuid(), direction: z.enum(["increase", "decrease"]), quantity: z.coerce.number().int().positive(), reason: z.string().trim().min(1).max(240) });
 export type InventoryActionState = { error?: string; success?: string };
 
 export async function stockIn(_previousState: InventoryActionState, formData: FormData): Promise<InventoryActionState> {
