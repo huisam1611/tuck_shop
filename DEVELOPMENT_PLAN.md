@@ -205,7 +205,7 @@ Use a fixed dataset to compare on-screen values, direct SQL results, and workboo
 
 ### Release Gate
 
-- [ ] All ten V1 acceptance criteria in `project prompt.md` pass.
+- [ ] All ten V1 acceptance criteria in `project prompt.md` pass. (Core Admin, data, concurrency, RLS, report, export, and responsive checks pass; a separate Staff browser session and fresh-environment rehearsal remain operator confirmation.)
 - [x] Type-check, lint, tests, and production build pass.
 - [x] No critical/high security issue remains open. (One moderate transitive `uuid` advisory remains documented.)
 - [ ] A fresh environment can be set up using only the README.
@@ -242,4 +242,4 @@ These decisions are fixed for V1 unless the product owner changes them before im
 
 ## Next Development Action
 
-Next: push and deploy the latest commits through `e7e8c8f`, then run the final V1 acceptance checklist and record any remaining operator-only steps. Keep `pnpm verify:local`, `pnpm smoke:app`, and the production TEST audit records as evidence.
+Next: complete the fresh README setup rehearsal and, if required for sign-off, one dedicated Staff browser session; then close the V1 acceptance checklist. Keep `pnpm verify:local`, `pnpm smoke:app`, and the production TEST audit records as evidence.
