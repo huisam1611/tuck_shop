@@ -197,7 +197,7 @@ Use a fixed dataset to compare on-screen values, direct SQL results, and workboo
 - [ ] P5.1 Add unit tests for money calculations, dates, status derivation, and Zod schemas. (Currency and report-summary tests exist; dates/status/Zod coverage remains.)
 - [ ] P5.2 Add integration tests for RPC transactions, concurrency, RLS, and report queries. (RPC transactions, concurrency, and RLS are covered by `pnpm verify:local`; report-query integration remains.)
 - [x] P5.3 Add end-to-end tests for login, product creation, sale, stock-in, adjustment, void, report, and export workflows. (Production Admin session verified on 2026-08-09 with TEST-E2E-01 / TEST E2E Snack: stock-in +2, sale 1, adjustment in +1, void restore +1, immutable history, void-excluded report totals, and `.xlsx` download. The authenticated session was already supplied, so the password-entry step was not replayed.)
-- [ ] P5.4 Verify keyboard access, focus states, labels, contrast, loading states, empty states, and error recovery. (Visible focus styles, semantic form labels/aria-labels, loading/error/empty states are implemented; full browser audit remains.)
+- [ ] P5.4 Verify keyboard access, focus states, labels, contrast, loading states, empty states, and error recovery. (Production scan across nine Admin routes found no unnamed visible controls/links, missing image alt text, or missing main/navigation landmarks; focus rings and status/empty states were confirmed. The mobile sign-out control was fixed locally; production verification waits for deployment.)
 - [ ] P5.5 Test common desktop widths and iPhone widths at 375 px and 430 px. (Sales at 375px and Inventory at 430px show no horizontal overflow; broader page-by-page visual review remains.)
 - [ ] P5.6 Review security headers, secrets, service-role usage, server authorization, and dependency audit results. (Headers, server-only guard, build secret scan, and unauthenticated export boundary pass; `pnpm audit --prod` reports one moderate transitive `uuid` advisory through ExcelJS, so the release gate remains open.)
 - [x] P5.7 Write README instructions for setup, migrations, seed, tests, first Admin, deployment, backup, and recovery. (Runbook and release smoke command are documented; project-specific backup-plan selection remains an operator task.)
@@ -242,4 +242,4 @@ These decisions are fixed for V1 unless the product owner changes them before im
 
 ## Next Development Action
 
-Start **P5.4**: complete the browser accessibility and responsive review, then close the final security/release gate. Keep the local Supabase verification command, `pnpm smoke:app`, and the production TEST audit records as evidence.
+Next: deploy the mobile sign-out fix, rerun the production P5.4 browser check, then close the final security/release gate. Keep the local Supabase verification command, `pnpm smoke:app`, and the production TEST audit records as evidence.

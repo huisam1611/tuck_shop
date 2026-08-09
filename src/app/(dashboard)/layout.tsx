@@ -53,6 +53,12 @@ export default async function DashboardLayout({ children }: LayoutProps<"/">) {
           ))}
         </nav>
 
+        <div className="px-4 pb-4 lg:hidden">
+          <form action={signOut}>
+            <button type="submit" className="w-full rounded-xl border border-slate-200 px-4 py-3 text-left text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900">Sign out</button>
+          </form>
+        </div>
+
         <div className="hidden border-t border-slate-100 px-7 py-6 lg:mt-auto lg:block">
           <form action={signOut}>
             <button type="submit" className="text-sm font-semibold text-slate-500 hover:text-slate-900">Sign out</button>
