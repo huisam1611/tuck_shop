@@ -242,4 +242,4 @@ These decisions are fixed for V1 unless the product owner changes them before im
 
 ## Next Development Action
 
-Next: push and deploy commit `9c4a1ac`, then run the final V1 acceptance checklist and record any remaining operator-only steps. Keep `pnpm verify:local`, `pnpm smoke:app`, and the production TEST audit records as evidence.
+Next: push and deploy the latest commits through `e7e8c8f`, then run the final V1 acceptance checklist and record any remaining operator-only steps. Keep `pnpm verify:local`, `pnpm smoke:app`, and the production TEST audit records as evidence.
