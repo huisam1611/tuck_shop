@@ -119,7 +119,7 @@ Complete locally: `supabase db reset` applies all three migrations and the seed,
 
 **Goal:** Complete the workflows Staff and Admin use every day.
 
-**Progress:** Login action, logout, Next.js 16 session proxy, Admin/Staff dashboard split, product CRUD view, Admin user creation/profile management, inventory actions/history, sales history/void UI, reports, and a validated sale composer are implemented. Local Supabase Auth/RPC/RLS verification is complete; server-key configuration and live browser workflow verification remain pending.
+**Progress:** Login action, logout, Next.js 16 session proxy, Admin/Staff dashboard split, product CRUD view, Admin user creation/profile management, inventory actions/history, sales history/void UI, reports, and a validated sale composer are implemented. Local Supabase Auth/RPC/RLS verification is complete; production Admin browser verification is complete for the main workflows. A separate Staff-account session is still optional follow-up coverage.
 
 ### 3A. Authentication and Navigation — 0.5–1 day
 
@@ -190,15 +190,15 @@ Use a fixed dataset to compare on-screen values, direct SQL results, and workboo
 
 **Goal:** Prove the V1 acceptance criteria and deploy safely.
 
-**Progress:** README, currency/report calculation tests, filtered Excel smoke test, local Supabase RPC/concurrency/RLS integration tests, a production HTTP smoke script, and the full local typecheck/lint/test/build gate are implemented. The production Vercel deployment smoke now passes; browser end-to-end tests, full accessibility review, and final security review remain pending.
+**Progress:** README, currency/report calculation tests, filtered Excel smoke test, local Supabase RPC/concurrency/RLS integration tests, a production HTTP smoke script, and the full local typecheck/lint/test/build gate are implemented. The production Vercel deployment smoke and Admin browser E2E workflow now pass; accessibility, responsive breadth, and final security review remain pending.
 
 ### Tasks
 
 - [ ] P5.1 Add unit tests for money calculations, dates, status derivation, and Zod schemas. (Currency and report-summary tests exist; dates/status/Zod coverage remains.)
 - [ ] P5.2 Add integration tests for RPC transactions, concurrency, RLS, and report queries. (RPC transactions, concurrency, and RLS are covered by `pnpm verify:local`; report-query integration remains.)
-- [ ] P5.3 Add end-to-end tests for login, product creation, sale, stock-in, adjustment, void, report, and export workflows.
+- [x] P5.3 Add end-to-end tests for login, product creation, sale, stock-in, adjustment, void, report, and export workflows. (Production Admin session verified on 2026-08-09 with TEST-E2E-01 / TEST E2E Snack: stock-in +2, sale 1, adjustment in +1, void restore +1, immutable history, void-excluded report totals, and `.xlsx` download. The authenticated session was already supplied, so the password-entry step was not replayed.)
 - [ ] P5.4 Verify keyboard access, focus states, labels, contrast, loading states, empty states, and error recovery. (Visible focus styles, semantic form labels/aria-labels, loading/error/empty states are implemented; full browser audit remains.)
-- [ ] P5.5 Test common desktop widths and iPhone widths at 375 px and 430 px.
+- [ ] P5.5 Test common desktop widths and iPhone widths at 375 px and 430 px. (Sales at 375px and Inventory at 430px show no horizontal overflow; broader page-by-page visual review remains.)
 - [ ] P5.6 Review security headers, secrets, service-role usage, server authorization, and dependency audit results. (Headers, server-only guard, build secret scan, and unauthenticated export boundary pass; `pnpm audit --prod` reports one moderate transitive `uuid` advisory through ExcelJS, so the release gate remains open.)
 - [x] P5.7 Write README instructions for setup, migrations, seed, tests, first Admin, deployment, backup, and recovery. (Runbook and release smoke command are documented; project-specific backup-plan selection remains an operator task.)
 - [x] P5.8 Configure Supabase production migrations and Vercel environment variables, then perform a deployment smoke test. (Production `/login` returns 200, unauthenticated export returns 403, and required security headers are present.)
@@ -242,4 +242,4 @@ These decisions are fixed for V1 unless the product owner changes them before im
 
 ## Next Development Action
 
-Start **P5.3**: add a browser E2E smoke path for login, product creation, sale, inventory update, void, report, and export. Keep the local Supabase verification command and `pnpm smoke:app` as the database and HTTP gates before each browser run.
+Start **P5.4**: complete the browser accessibility and responsive review, then close the final security/release gate. Keep the local Supabase verification command, `pnpm smoke:app`, and the production TEST audit records as evidence.
