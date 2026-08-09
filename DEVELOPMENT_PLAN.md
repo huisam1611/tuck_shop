@@ -190,16 +190,16 @@ Use a fixed dataset to compare on-screen values, direct SQL results, and workboo
 
 **Goal:** Prove the V1 acceptance criteria and deploy safely.
 
-**Progress:** README, currency/report calculation tests, filtered Excel smoke test, local Supabase RPC/concurrency/RLS integration tests, a production HTTP smoke script, and the full local typecheck/lint/test/build gate are implemented. The production Vercel deployment smoke and Admin browser E2E workflow now pass; accessibility, responsive breadth, and final security review remain pending.
+**Progress:** README, currency/report calculation tests, filtered Excel smoke test, local Supabase RPC/concurrency/RLS integration tests, a production HTTP smoke script, and the full local typecheck/lint/test/build gate are implemented. The production Vercel deployment smoke, Admin browser E2E workflow, accessibility checks, and responsive checks now pass. Remaining work is the missing date/status/Zod and report-query automated coverage plus release sign-off.
 
 ### Tasks
 
 - [ ] P5.1 Add unit tests for money calculations, dates, status derivation, and Zod schemas. (Currency and report-summary tests exist; dates/status/Zod coverage remains.)
 - [ ] P5.2 Add integration tests for RPC transactions, concurrency, RLS, and report queries. (RPC transactions, concurrency, and RLS are covered by `pnpm verify:local`; report-query integration remains.)
 - [x] P5.3 Add end-to-end tests for login, product creation, sale, stock-in, adjustment, void, report, and export workflows. (Production Admin session verified on 2026-08-09 with TEST-E2E-01 / TEST E2E Snack: stock-in +2, sale 1, adjustment in +1, void restore +1, immutable history, void-excluded report totals, and `.xlsx` download. The authenticated session was already supplied, so the password-entry step was not replayed.)
-- [ ] P5.4 Verify keyboard access, focus states, labels, contrast, loading states, empty states, and error recovery. (Production scan across nine Admin routes found no unnamed visible controls/links, missing image alt text, or missing main/navigation landmarks; focus rings, native invalid-field recovery, and status/empty states were confirmed. Mobile sign-out is live; low-contrast metadata was raised from `text-slate-400` to `text-slate-500` locally and awaits the next deployment.)
+- [x] P5.4 Verify keyboard access, focus states, labels, contrast, loading states, empty states, and error recovery. (Latest production deployment confirms visible mobile sign-out, no remaining `text-slate-400` metadata classes, focus rings, native invalid-field recovery, status/empty states, and no unnamed visible controls or missing image alt text across nine Admin routes.)
 - [x] P5.5 Test common desktop widths and iPhone widths at 375 px and 430 px. (Production Dashboard, Sales, Inventory, Products, and Reports were checked at 375px, 430px, and 1280px with no document-level horizontal overflow.)
-- [ ] P5.6 Review security headers, secrets, service-role usage, server authorization, and dependency audit results. (Headers, server-only guard, build secret scan, and unauthenticated export boundary pass; `pnpm audit --prod` reports one moderate transitive `uuid` advisory through ExcelJS, so the release gate remains open.)
+- [x] P5.6 Review security headers, secrets, service-role usage, server authorization, and dependency audit results. (Headers, server-only guard, build secret scan, authenticated/unauthenticated export boundaries, and production smoke pass. `pnpm audit --prod` reports one documented moderate transitive `uuid` advisory through ExcelJS; no critical/high issue was found.)
 - [x] P5.7 Write README instructions for setup, migrations, seed, tests, first Admin, deployment, backup, and recovery. (Runbook and release smoke command are documented; project-specific backup-plan selection remains an operator task.)
 - [x] P5.8 Configure Supabase production migrations and Vercel environment variables, then perform a deployment smoke test. (Production `/login` returns 200, unauthenticated export returns 403, and required security headers are present.)
 
@@ -242,4 +242,4 @@ These decisions are fixed for V1 unless the product owner changes them before im
 
 ## Next Development Action
 
-Next: push and deploy the contrast patch, rerun the production P5.4 browser check, then close the final security/release gate. Keep the local Supabase verification command, `pnpm smoke:app`, and the production TEST audit records as evidence.
+Next: complete P5.1 date/status/Zod coverage and P5.2 report-query integration coverage, then run the final V1 acceptance checklist. Keep the local Supabase verification command, `pnpm smoke:app`, and the production TEST audit records as evidence.
