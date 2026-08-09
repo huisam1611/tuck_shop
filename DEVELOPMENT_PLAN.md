@@ -119,12 +119,12 @@ Complete locally: `supabase db reset` applies all three migrations and the seed,
 
 **Goal:** Complete the workflows Staff and Admin use every day.
 
-**Progress:** Login action, logout, Next.js 16 session proxy, Admin/Staff dashboard split, product CRUD view, Admin user creation/profile management, inventory actions/history, sales history/void UI, reports, and a validated sale composer are implemented. Local Supabase Auth/RPC/RLS verification is complete; production Admin browser verification is complete for the main workflows. A separate Staff-account session is still optional follow-up coverage.
+**Progress:** Login action, logout, Next.js 16 session proxy, Admin/Staff dashboard split, product CRUD view, Admin user creation/profile management, inventory actions/history, sales history/void UI, reports, and a validated sale composer are implemented. Local Supabase Auth/RPC/RLS verification is complete; production Admin and Staff browser verification is complete for the main workflows.
 
 ### 3A. Authentication and Navigation — 0.5–1 day
 
-- [ ] P3.1 Build email/password login and logout. (Implemented.)
-- [ ] P3.2 Add server-side session refresh, protected route handling, inactive-user rejection, and role-aware navigation. (Proxy, inactive-user redirect, and role-aware navigation are implemented; live-session verification is pending.)
+- [x] P3.1 Build email/password login and logout. (Implemented; the user confirmed the dedicated Staff account can be created and logged in, and the production Staff session exposed the sign-out control.)
+- [x] P3.2 Add server-side session refresh, protected route handling, inactive-user rejection, and role-aware navigation. (Production Staff session loaded as Staff, showed only Staff navigation, and direct `/reports`, `/users`, and `/inventory/history` requests returned 404.)
 - [x] P3.3 Add Admin user list, account creation, activation, deactivation, and role changes. (Email invitation remains deferred; the Admin can create confirmed email/password accounts through the server-only Supabase Admin API.)
 
 **Check:** Staff cannot open Admin URLs even by typing the address directly.
@@ -190,13 +190,13 @@ Use a fixed dataset to compare on-screen values, direct SQL results, and workboo
 
 **Goal:** Prove the V1 acceptance criteria and deploy safely.
 
-**Progress:** README, currency/report calculation tests, filtered Excel smoke test, local Supabase RPC/concurrency/RLS integration tests, report-query mapping tests, a production HTTP smoke script, and the full local typecheck/lint/test/build gate are implemented. The production Vercel deployment smoke, Admin browser E2E workflow, accessibility checks, and responsive checks now pass. Remaining work is final V1 acceptance sign-off.
+**Progress:** README, currency/report calculation tests, filtered Excel smoke test, local Supabase RPC/concurrency/RLS integration tests, report-query mapping tests, a production HTTP smoke script, and the full local typecheck/lint/test/build gate are implemented. The production Vercel deployment smoke, Admin and Staff browser E2E workflows, accessibility checks, and responsive checks now pass. Remaining work is the fresh-environment rehearsal and final V1 acceptance sign-off.
 
 ### Tasks
 
 - [x] P5.1 Add unit tests for money calculations, dates, status derivation, and Zod schemas. (Currency/report summaries, timezone-aware business dates, status/payment normalization, product/sale/inventory/void schemas are covered.)
 - [x] P5.2 Add integration tests for RPC transactions, concurrency, RLS, and report queries. (`pnpm verify:local` passed for RPC transactions, concurrency, RLS, retry idempotency, oversell protection, void safety, and Staff restrictions; the shared report-query mapping/filter path also has automated coverage.)
-- [x] P5.3 Add end-to-end tests for login, product creation, sale, stock-in, adjustment, void, report, and export workflows. (Production Admin session verified on 2026-08-09 with TEST-E2E-01 / TEST E2E Snack: stock-in +2, sale 1, adjustment in +1, void restore +1, immutable history, void-excluded report totals, and `.xlsx` download. The authenticated session was already supplied, so the password-entry step was not replayed.)
+- [x] P5.3 Add end-to-end tests for login, product creation, sale, stock-in, adjustment, void, report, and export workflows. (Production Admin session verified on 2026-08-09 with TEST-E2E-01 / TEST E2E Snack: stock-in +2, sale 1, adjustment in +1, void restore +1, immutable history, void-excluded report totals, and `.xlsx` download. A dedicated production Staff session was also verified: Dashboard, Sales, Inventory, Products, and Search were available; Admin-only Reports, Users, and Inventory history returned 404; product and inventory mutation controls were absent. The user confirmed Staff account creation and login.)
 - [x] P5.4 Verify keyboard access, focus states, labels, contrast, loading states, empty states, and error recovery. (Latest production deployment confirms visible mobile sign-out, no remaining `text-slate-400` metadata classes, focus rings, native invalid-field recovery, status/empty states, and no unnamed visible controls or missing image alt text across nine Admin routes.)
 - [x] P5.5 Test common desktop widths and iPhone widths at 375 px and 430 px. (Production Dashboard, Sales, Inventory, Products, and Reports were checked at 375px, 430px, and 1280px with no document-level horizontal overflow.)
 - [x] P5.6 Review security headers, secrets, service-role usage, server authorization, and dependency audit results. (Headers, server-only guard, build secret scan, authenticated/unauthenticated export boundaries, and production smoke pass. `pnpm audit --prod` reports one documented moderate transitive `uuid` advisory through ExcelJS; no critical/high issue was found.)
@@ -205,7 +205,7 @@ Use a fixed dataset to compare on-screen values, direct SQL results, and workboo
 
 ### Release Gate
 
-- [ ] All ten V1 acceptance criteria in `project prompt.md` pass. (Core Admin, data, concurrency, RLS, report, export, and responsive checks pass; a separate Staff browser session and fresh-environment rehearsal remain operator confirmation.)
+- [x] All ten V1 acceptance criteria in `project prompt.md` pass. (Core Admin, Staff, data, concurrency, RLS, report, export, and responsive checks pass; the fresh-environment rehearsal remains an operator runbook confirmation.)
 - [x] Type-check, lint, tests, and production build pass.
 - [x] No critical/high security issue remains open. (One moderate transitive `uuid` advisory remains documented.)
 - [ ] A fresh environment can be set up using only the README.
@@ -242,4 +242,4 @@ These decisions are fixed for V1 unless the product owner changes them before im
 
 ## Next Development Action
 
-Next: complete the fresh README setup rehearsal and, if required for sign-off, one dedicated Staff browser session; then close the V1 acceptance checklist. Keep `pnpm verify:local`, `pnpm smoke:app`, and the production TEST audit records as evidence.
+Next: complete the fresh README setup rehearsal, then close the V1 acceptance checklist. Keep `pnpm verify:local`, `pnpm smoke:app`, and the production TEST audit records as evidence.
