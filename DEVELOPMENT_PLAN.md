@@ -195,7 +195,7 @@ Use a fixed dataset to compare on-screen values, direct SQL results, and workboo
 ### Tasks
 
 - [x] P5.1 Add unit tests for money calculations, dates, status derivation, and Zod schemas. (Currency/report summaries, timezone-aware business dates, status/payment normalization, product/sale/inventory/void schemas are covered.)
-- [x] P5.2 Add integration tests for RPC transactions, concurrency, RLS, and report queries. (RPC transactions, concurrency, and RLS are covered by `pnpm verify:local`; the shared report-query mapping/filter path now has automated coverage. A fresh local gate rerun requires `SUPABASE_TEST_URL`, `SUPABASE_TEST_ANON_KEY`, and `SUPABASE_TEST_SERVICE_ROLE_KEY`.)
+- [x] P5.2 Add integration tests for RPC transactions, concurrency, RLS, and report queries. (`pnpm verify:local` passed for RPC transactions, concurrency, RLS, retry idempotency, oversell protection, void safety, and Staff restrictions; the shared report-query mapping/filter path also has automated coverage.)
 - [x] P5.3 Add end-to-end tests for login, product creation, sale, stock-in, adjustment, void, report, and export workflows. (Production Admin session verified on 2026-08-09 with TEST-E2E-01 / TEST E2E Snack: stock-in +2, sale 1, adjustment in +1, void restore +1, immutable history, void-excluded report totals, and `.xlsx` download. The authenticated session was already supplied, so the password-entry step was not replayed.)
 - [x] P5.4 Verify keyboard access, focus states, labels, contrast, loading states, empty states, and error recovery. (Latest production deployment confirms visible mobile sign-out, no remaining `text-slate-400` metadata classes, focus rings, native invalid-field recovery, status/empty states, and no unnamed visible controls or missing image alt text across nine Admin routes.)
 - [x] P5.5 Test common desktop widths and iPhone widths at 375 px and 430 px. (Production Dashboard, Sales, Inventory, Products, and Reports were checked at 375px, 430px, and 1280px with no document-level horizontal overflow.)
@@ -242,4 +242,4 @@ These decisions are fixed for V1 unless the product owner changes them before im
 
 ## Next Development Action
 
-Next: run the final V1 acceptance checklist and record any remaining operator-only steps. Keep the local Supabase verification command, `pnpm smoke:app`, and the production TEST audit records as evidence.
+Next: push and deploy commit `9c4a1ac`, then run the final V1 acceptance checklist and record any remaining operator-only steps. Keep `pnpm verify:local`, `pnpm smoke:app`, and the production TEST audit records as evidence.
