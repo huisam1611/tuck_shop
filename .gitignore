@@ -38,6 +38,9 @@ yarn-error.log*
 # local historical source data
 /historical-sales-2025.tsv
 
+# local production backups
+/backups/
+
 # vercel
 .vercel
 
