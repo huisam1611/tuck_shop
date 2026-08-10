@@ -205,11 +205,31 @@ Use a fixed dataset to compare on-screen values, direct SQL results, and workboo
 
 ### Release Gate
 
-- [x] All ten V1 acceptance criteria in `project prompt.md` pass. (Core Admin, Staff, data, concurrency, RLS, report, export, and responsive checks pass; the fresh-environment rehearsal remains an operator runbook confirmation.)
+- [x] All ten V1 acceptance criteria in `project prompt.md` pass. (Core Admin, Staff, data, concurrency, RLS, report, export, responsive, and fresh-environment checks pass.)
 - [x] Type-check, lint, tests, and production build pass.
 - [x] No critical/high security issue remains open. (One moderate transitive `uuid` advisory remains documented.)
 - [x] A fresh environment can be set up using only the README. (Local Supabase was rebuilt from migrations and seed, then `pnpm verify:local` passed RLS, atomicity, retry idempotency, oversell protection, and void safety.)
 - [x] Production smoke test completes without using seed data. (Production Admin TEST audit records were used for browser verification.)
+
+---
+
+## Phase 6 — Historical Data Migration
+
+**Goal:** Load the real 2025 sales history without changing the current inventory baseline, then reconcile the production screens and totals.
+
+**Progress:** The operator reports that the 57-product catalogue, current stock, 328 source sales rows, 29 date/payment summaries, 270 sale items, HK$1,824 total, known quantity correction, and inactive legacy/history products were written to production. The production Staff view confirms HK$ formatting, the imported catalogue, inventory quantities, and sale options; Admin-only report reconciliation remains an operator evidence check.
+
+### Tasks
+
+- [x] D6.1 Import the current catalogue and inventory baseline. (57 current products; 旺旺仙貝 is 70 small packs and 掛裝卡樂B is 8 small packs.)
+- [x] D6.2 Preserve historical product references and deactivate legacy test products. (P001–P010 are retained as inactive history; unmatched historical products are inactive.)
+- [x] D6.3 Import 2025 sales using deterministic, retry-safe IDs grouped by date and payment method. (328 source rows became 29 summary sales and 270 sale items; historical sales do not deduct current stock.)
+- [x] D6.4 Reconcile the production total and known correction. (Operator confirmed HK$1,824 total and 特濃旺仔牛奶 quantity 2 / HK$6.)
+- [x] D6.5 Add a dry-run regression test and document the import command. (`pnpm import:historical` defaults to dry-run; source TSVs remain untracked.)
+
+### Migration Safety
+
+Do not run `--apply` again without a new source file and a reviewed dry-run. The importer supports `SUPABASE_SECRET_KEY` and the legacy `SUPABASE_SERVICE_ROLE_KEY`, uses deterministic IDs, and keeps unmatched products inactive.
 
 ---
 
@@ -231,7 +251,7 @@ These decisions are fixed for V1 unless the product owner changes them before im
 
 | Decision | V1 choice |
 |---|---|
-| Currency | MYR (`RM`) |
+| Currency | HKD (`HK$`) |
 | Business timezone | `Asia/Kuala_Lumpur`, configurable by environment |
 | Inventory costing | Latest unit cost |
 | Negative stock | Prohibited |
@@ -242,4 +262,4 @@ These decisions are fixed for V1 unless the product owner changes them before im
 
 ## Next Development Action
 
-Next: V1 acceptance is complete. Keep `pnpm verify:local`, `pnpm smoke:app`, and the production TEST audit records as release evidence; optional post-V1 polish remains separately tracked.
+Next: V1 acceptance and the historical data migration are complete. Keep `pnpm verify:local`, `pnpm smoke:app`, the production TEST audit records, and the import reconciliation as release evidence; optional post-V1 polish remains separately tracked.

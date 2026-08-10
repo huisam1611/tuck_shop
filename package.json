@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
     "verify:local": "node scripts/verify-local-supabase.mjs",
-    "smoke:app": "node scripts/smoke-app.mjs"
+    "smoke:app": "node scripts/smoke-app.mjs",
+    "import:historical": "node scripts/import-historical-sales.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

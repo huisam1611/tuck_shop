@@ -60,8 +60,8 @@ export async function createUser(_previousState: ProfileActionState, formData: F
     revalidatePath("/users");
     return { success: `${values.data.name} was created as ${values.data.role}.` };
   } catch (error) {
-    if (error instanceof Error && error.message === "SUPABASE_SERVICE_ROLE_KEY is not configured.") {
-      return { error: "Add SUPABASE_SERVICE_ROLE_KEY to .env.local before creating users." };
+    if (error instanceof Error && error.message === "SUPABASE_SECRET_KEY is not configured.") {
+      return { error: "Add SUPABASE_SECRET_KEY to .env.local before creating users." };
     }
     return { error: "Unable to create the user. Check Supabase settings." };
   }

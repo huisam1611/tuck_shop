@@ -35,10 +35,10 @@ BUSINESS_TIMEZONE=Asia/Kuala_Lumpur
 To let an Admin create Staff or Admin accounts from `/users`, also set this server-only value:
 
 ```text
-SUPABASE_SERVICE_ROLE_KEY=...
+SUPABASE_SECRET_KEY=...
 ```
 
-Use the Supabase Project Settings API service-role key. Never prefix it with `NEXT_PUBLIC_`, expose it to browser code, or commit it.
+Use the Supabase Project Settings API Secret key. The legacy `SUPABASE_SERVICE_ROLE_KEY` is also supported. Never prefix it with `NEXT_PUBLIC_`, expose it to browser code, or commit it.
 
 Do not commit `.env.local`.
 
@@ -46,7 +46,19 @@ Do not commit `.env.local`.
 
 Apply the migrations in `supabase/migrations/` to a Supabase project, then run `supabase/seed.sql` in a development database. The first Admin profile must reference an existing Supabase Auth user and is created as a deployment step.
 
-The database layer contains RLS, Staff-safe views, idempotent sale creation, stock-in, stock adjustment, sale voiding, product Admin RPCs, and audit movements. The local Supabase stack has been reset from all migrations and seed data, and the local integration gate passes. A remote/test project still needs its own migration smoke test before production use.
+The database layer contains RLS, Staff-safe views, idempotent sale creation, stock-in, stock adjustment, sale voiding, product Admin RPCs, and audit movements. The local Supabase stack has been reset from all migrations and seed data, and the local integration gate passes. Use a remote/test project for future migration rehearsals before production changes.
+
+### Historical sales import
+
+`pnpm import:historical` defaults to a dry-run. Keep the source TSV local and untracked, review the JSON preview, then apply it only after confirming the totals and mappings:
+
+```powershell
+pnpm import:historical -- --input .\historical-sales-2025.tsv
+$env:SUPABASE_SECRET_KEY = "sb_secret_..."
+pnpm import:historical -- --input .\historical-sales-2025.tsv --apply
+```
+
+The importer uses deterministic IDs, groups rows by date and payment method, preserves unmatched products as inactive historical products, and does not deduct current stock for historical sales. `SUPABASE_SERVICE_ROLE_KEY` remains supported as a legacy fallback. Never paste keys or commit the source TSV.
 
 ### Local Supabase verification
 
@@ -90,17 +102,16 @@ Set `SMOKE_BASE_URL` when checking a Preview deployment.
 
 The Reports page also accepts `month`, `paymentMethod`, `status`, `product`, `category`, and `staff` query parameters. Demo mode is intentionally read-only and uses sample data.
 
-## Release blockers
+## Operational follow-ups
 
-- Run the local Supabase integration gate; the remaining database release check is a remote/test-project migration smoke test.
-- Set the server-only `SUPABASE_SERVICE_ROLE_KEY`, then complete Staff smoke tests, Vercel environment variables, backups, and a production smoke test.
-- Complete browser E2E, accessibility, and mobile-width QA.
-- `pnpm audit --prod` currently reports one moderate transitive `uuid` advisory through `exceljs`; review or upgrade that dependency before production release.
+- Keep a Supabase backup/export record before future schema changes or bulk imports.
+- Rehearse future migrations in a separate remote/test project before applying them to production.
+- `pnpm audit --prod` currently reports one documented moderate transitive `uuid` advisory through `exceljs`; no critical/high issue is open.
 
 ## Deployment, backup, and recovery runbook
 
 1. Apply every file in `supabase/migrations/` to the target Supabase project. Do not run `supabase/seed.sql` in production.
-2. In Vercel, set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `BUSINESS_TIMEZONE` for the deployment environments. Set `SUPABASE_SERVICE_ROLE_KEY` only when the `/users` Admin account-creation flow is needed; keep it server-only.
+2. In Vercel, set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `BUSINESS_TIMEZONE` for the deployment environments. Set `SUPABASE_SECRET_KEY` only when the `/users` Admin account-creation flow is needed; keep it server-only. The legacy `SUPABASE_SERVICE_ROLE_KEY` remains supported.
 3. Before a schema change or bulk data operation, create a Supabase backup/export using the controls available for the project plan and record the migration commit SHA.
 4. For recovery, restore into a separate Supabase project first, apply the migrations, rotate exposed keys if necessary, update Vercel variables, and run `pnpm smoke:app` against the deployment before switching traffic.
 

@@ -35,6 +35,9 @@ yarn-error.log*
 .env*
 !.env.example
 
+# local historical source data
+/historical-sales-2025.tsv
+
 # vercel
 .vercel
 

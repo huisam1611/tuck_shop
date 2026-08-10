@@ -16,7 +16,7 @@ export default async function UsersPage() {
   if (!current || current.role !== "admin") notFound();
   const profiles = await listProfiles();
   const liveMode = hasSupabaseEnv();
-  const adminApiReady = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
+  const adminApiReady = Boolean(process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY);
 
   return (
     <div className="min-h-screen px-4 py-5 sm:px-6 lg:px-10 lg:py-8">
@@ -30,7 +30,7 @@ export default async function UsersPage() {
       </header>
 
       {!liveMode ? <p className="mb-6 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800">Demo mode: sample profiles are read-only. Connect Supabase to create real users.</p> : null}
-      {liveMode && !adminApiReady ? <p className="mb-6 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800">Add the server-only SUPABASE_SERVICE_ROLE_KEY to .env.local to create users. Never prefix it with NEXT_PUBLIC_.</p> : null}
+      {liveMode && !adminApiReady ? <p className="mb-6 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800">Add the server-only SUPABASE_SECRET_KEY to .env.local to create users. The legacy SUPABASE_SERVICE_ROLE_KEY is also supported. Never prefix it with NEXT_PUBLIC_.</p> : null}
 
       {liveMode ? <section className="mb-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
         <div className="mb-5"><h2 className="font-semibold text-slate-950">Create user</h2><p className="mt-1 text-sm text-slate-500">Create an email/password account and its application profile. Share the temporary password securely.</p></div>
