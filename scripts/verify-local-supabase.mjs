@@ -14,6 +14,7 @@ const authOptions = { auth: { autoRefreshToken: false, persistSession: false } }
 const service = createClient(url, serviceRoleKey, authOptions);
 const suffix = `${Date.now()}-${randomUUID().slice(0, 8)}`;
 const adminCredentials = { email: `local-admin-${suffix}@example.test`, password: `Admin-${randomUUID()}!` };
+const alternateAdminCredentials = { email: `local-admin-2-${suffix}@example.test`, password: `Admin-${randomUUID()}!` };
 const staffCredentials = { email: `local-staff-${suffix}@example.test`, password: `Staff-${randomUUID()}!` };
 const createdUserIds = [];
 const createdSaleIds = [];
@@ -60,6 +61,7 @@ async function removeRows(table, column, values) {
 try {
   await createUser(adminCredentials, "Local Admin", "admin");
   await createUser(staffCredentials, "Local Staff", "staff");
+  await createUser(alternateAdminCredentials, "Local Alternate Admin", "admin");
   const admin = await signIn(adminCredentials);
   const staff = await signIn(staffCredentials);
 
@@ -117,6 +119,12 @@ try {
   const { data: retryImportData, error: retryImportError } = await service.rpc("import_initial_stock", initialStockArgs);
   if (retryImportError) throw new Error(`Initial stock retry failed: ${retryImportError.message}`);
   assert(rpcRow(retryImportData)?.stock_applied === false, "Initial stock retry applied stock twice.");
+  const { data: alternateAdminRetryData, error: alternateAdminRetryError } = await service.rpc("import_initial_stock", {
+    ...initialStockArgs,
+    p_created_by: createdUserIds[2],
+  });
+  if (alternateAdminRetryError) throw new Error(`Initial stock retry with another Admin failed: ${alternateAdminRetryError.message}`);
+  assert(rpcRow(alternateAdminRetryData)?.stock_applied === false, "Changing Admin broke initial stock idempotency.");
   const { count: receiptCount, error: receiptCountError } = await service
     .from("stock_receipts")
     .select("id", { count: "exact", head: true })
@@ -371,9 +379,14 @@ try {
   if (counterSaleError) throw new Error(`Counter fixture setup failed: ${counterSaleError.message}`);
   const { error: counterSeedError } = await service.from("daily_order_counters").upsert({
     sale_date: counterDate,
-    next_order_number: 150,
+    next_order_number: 1,
   });
   if (counterSeedError) throw new Error(`Counter seed failed: ${counterSeedError.message}`);
+  const { data: raisedCounterData, error: raisedCounterError } = await service.rpc("reconcile_daily_order_counter", { p_sale_date: counterDate });
+  if (raisedCounterError) throw new Error(`Counter raise failed: ${raisedCounterError.message}`);
+  assert(rpcRow(raisedCounterData)?.next_order_number === 100, "Counter reconciliation did not advance past existing sales.");
+  const { error: largerCounterSeedError } = await service.from("daily_order_counters").update({ next_order_number: 150 }).eq("sale_date", counterDate);
+  if (largerCounterSeedError) throw new Error(`Larger counter seed failed: ${largerCounterSeedError.message}`);
   const { data: counterData, error: counterError } = await service.rpc("reconcile_daily_order_counter", { p_sale_date: counterDate });
   if (counterError) throw new Error(`Counter reconciliation failed: ${counterError.message}`);
   assert(rpcRow(counterData)?.next_order_number >= 150, "Counter reconciliation lowered an existing counter.");

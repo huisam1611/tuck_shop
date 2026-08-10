@@ -63,6 +63,8 @@ describe("historical import existing-product policy", () => {
       costPrice: 3.25,
       sellingPrice: 9.5,
       minimumStock: 4,
+      seedCostPrice: 2.17,
+      category: "Drinks",
       current_stock: 7,
       status: "inactive",
     });

@@ -63,8 +63,7 @@ begin
        or receipt_row.receipt_date <> p_receipt_date
        or receipt_row.quantity <> p_quantity
        or receipt_row.unit_cost <> p_unit_cost
-       or receipt_row.supplier_name is distinct from supplier_value
-       or receipt_row.created_by <> p_created_by then
+       or receipt_row.supplier_name is distinct from supplier_value then
       raise exception using errcode = '23505', message = 'Initial stock receipt key conflicts with different data';
     end if;
   else
@@ -141,6 +140,33 @@ begin
   return counter_row;
 end;
 $$;
+
+insert into public.daily_order_counters (sale_date, next_order_number)
+select sale_date, max(daily_order_number) + 1
+from public.sales
+group by sale_date
+on conflict (sale_date) do update
+set next_order_number = greatest(
+  public.daily_order_counters.next_order_number,
+  excluded.next_order_number
+);
+
+update public.products as product
+set category = correction.category
+from (values
+  ('HK-015', 'Drinks'),
+  ('HK-018', 'Drinks'),
+  ('HK-024', 'Household'),
+  ('HK-030', 'Snacks'),
+  ('HK-031', 'Snacks')
+) as correction(product_code, category)
+where lower(product.product_code) = lower(correction.product_code)
+  and product.category is distinct from correction.category;
+
+update public.products
+set status = 'inactive'
+where lower(product_code) = 'test-e2e-01'
+  and status <> 'inactive';
 
 revoke all on function public.import_initial_stock(uuid, uuid, uuid, date, integer, numeric, text, uuid) from public;
 revoke all on function public.import_initial_stock(uuid, uuid, uuid, date, integer, numeric, text, uuid) from anon;

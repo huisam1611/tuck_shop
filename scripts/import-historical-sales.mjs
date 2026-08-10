@@ -179,6 +179,7 @@ function mergeExistingProduct(existing, product, { historical = false } = {}) {
     sellingPrice: Number(existing.selling_price),
     minimumStock: Number(existing.minimum_stock),
     category: existing.category,
+    seedCostPrice: product.costPrice,
     current_stock: Number(existing.current_stock),
     status: historical ? 'inactive' : existing.status,
   };
@@ -359,7 +360,7 @@ async function importToSupabase(plan) {
   const insert = (table, row) => request(table, 'POST', row, 'return=minimal');
   const update = (table, filter, row) => request(`${table}?${filter}`, 'PATCH', row, 'return=minimal');
   const rpc = (functionName, body) => request(`rpc/${functionName}`, 'POST', body, 'return=representation');
-  const existingProducts = await select('products?select=id,product_code,name,status,current_stock,cost_price,selling_price,minimum_stock');
+  const existingProducts = await select('products?select=id,product_code,name,category,status,current_stock,cost_price,selling_price,minimum_stock');
   const byCode = new Map(existingProducts.map((product) => [product.product_code.toLowerCase(), product]));
   const byPlanKey = new Map();
   const result = { productsCreated: 0, productsUpdated: 0, stockSeeded: 0, historicalProductsCreated: 0, salesCreated: 0, saleItemsCreated: 0, legacyDeactivated: 0 };
@@ -417,7 +418,7 @@ async function importToSupabase(plan) {
       p_product_id: product.id,
       p_receipt_date: INITIAL_RECEIPT_DATE,
       p_quantity: product.stock,
-      p_unit_cost: product.costPrice,
+      p_unit_cost: product.seedCostPrice ?? product.costPrice,
       p_supplier_name: 'Initial inventory import',
       p_created_by: createdBy,
     });
