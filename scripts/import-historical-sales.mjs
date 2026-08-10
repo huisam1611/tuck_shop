@@ -4,10 +4,22 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import { pathToFileURL } from 'node:url';
 
 const INITIAL_RECEIPT_DATE = '2026-08-10';
 const HISTORICAL_YEAR = 2025;
-const LEGACY_CODES = new Set(Array.from({ length: 10 }, (_, index) => `P${String(index + 1).padStart(3, '0')}`));
+const LEGACY_CODES = new Set([
+  ...Array.from({ length: 10 }, (_, index) => `P${String(index + 1).padStart(3, '0')}`),
+  'TEST-E2E-01',
+]);
+
+const CATEGORY_OVERRIDES = new Map([
+  ['250地道菊花烏龍', 'Drinks'],
+  ['250麥精', 'Drinks'],
+  ['奶片', 'Snacks'],
+  ['可樂橡皮糖', 'Snacks'],
+  ['維達抽紙（綠茶）', 'Household'],
+]);
 
 const CATALOGUE = [
   ['750 cool 礦泉水', 96, 208, 2.5],
@@ -145,10 +157,31 @@ function normalizeName(value) {
 }
 
 function categoryFor(name) {
+  const override = CATEGORY_OVERRIDES.get(name);
+  if (override) return override;
   if (/水|奶|茶|汁|可樂|清涼爽|荔枝玉露/.test(name)) return 'Drinks';
   if (/麵|面|炒麵|辛拉|公仔|沙爹/.test(name)) return 'Food';
   if (/紙|洗衣/.test(name)) return 'Household';
   return 'Snacks';
+}
+
+function mergeExistingProduct(existing, product, { historical = false } = {}) {
+  if (normalizeName(existing.name) !== normalizeName(product.name)) {
+    throw new Error(`產品 code ${product.code} 已存在，但名稱不一致：${existing.name} / ${product.name}`);
+  }
+
+  return {
+    id: existing.id,
+    code: product.code,
+    name: existing.name,
+    stock: product.stock,
+    costPrice: Number(existing.cost_price),
+    sellingPrice: Number(existing.selling_price),
+    minimumStock: Number(existing.minimum_stock),
+    category: existing.category,
+    current_stock: Number(existing.current_stock),
+    status: historical ? 'inactive' : existing.status,
+  };
 }
 
 function stableUuid(seed) {
@@ -325,7 +358,8 @@ async function importToSupabase(plan) {
   const select = (resource) => request(resource);
   const insert = (table, row) => request(table, 'POST', row, 'return=minimal');
   const update = (table, filter, row) => request(`${table}?${filter}`, 'PATCH', row, 'return=minimal');
-  const existingProducts = await select('products?select=id,product_code,name,status,current_stock,cost_price,selling_price');
+  const rpc = (functionName, body) => request(`rpc/${functionName}`, 'POST', body, 'return=representation');
+  const existingProducts = await select('products?select=id,product_code,name,status,current_stock,cost_price,selling_price,minimum_stock');
   const byCode = new Map(existingProducts.map((product) => [product.product_code.toLowerCase(), product]));
   const byPlanKey = new Map();
   const result = { productsCreated: 0, productsUpdated: 0, stockSeeded: 0, historicalProductsCreated: 0, salesCreated: 0, saleItemsCreated: 0, legacyDeactivated: 0 };
@@ -362,52 +396,32 @@ async function importToSupabase(plan) {
       return created;
     }
 
-    await update('products', `id=eq.${encodeURIComponent(existing.id)}`, {
-      name: product.name,
-      category: product.category,
-      cost_price: product.costPrice,
-      selling_price: product.sellingPrice,
-      minimum_stock: product.minimumStock,
-      status: historical ? 'inactive' : 'active',
-    });
-    const updated = { ...existing, ...product, id: existing.id, status: historical ? 'inactive' : 'active' };
-    byCode.set(product.code.toLowerCase(), updated);
-    result.productsUpdated += 1;
-    if (seedStock) await seedInitialStock(updated);
-    return updated;
+    const reused = mergeExistingProduct(existing, product, { historical });
+    if (historical && existing.status !== 'inactive') {
+      await update('products', `id=eq.${encodeURIComponent(existing.id)}`, { status: 'inactive' });
+      result.productsUpdated += 1;
+    }
+    byCode.set(product.code.toLowerCase(), reused);
+    if (seedStock) await seedInitialStock(reused);
+    return reused;
   };
 
   const seedInitialStock = async (product) => {
     if (product.stock <= 0 || Number(product.current_stock) > 0) return;
     const receiptId = stableUuid(`initial-receipt:${product.code}:${INITIAL_RECEIPT_DATE}`);
     const movementId = stableUuid(`initial-movement:${product.code}:${INITIAL_RECEIPT_DATE}`);
-    const receiptRows = await select(`stock_receipts?select=id&id=eq.${encodeURIComponent(receiptId)}&limit=1`);
-    if (!receiptRows.length) {
-      const createdBy = await findAdmin();
-      await insert('stock_receipts', {
-        id: receiptId,
-        receipt_date: INITIAL_RECEIPT_DATE,
-        product_id: product.id,
-        quantity: product.stock,
-        unit_cost: product.costPrice,
-        supplier_name: 'Initial inventory import',
-        created_by: createdBy,
-      });
-      await insert('stock_movements', {
-        id: movementId,
-        product_id: product.id,
-        movement_type: 'stock_in',
-        quantity_change: product.stock,
-        stock_before: 0,
-        stock_after: product.stock,
-        reference_type: 'stock_receipt',
-        reference_id: receiptId,
-        reason: 'Initial inventory import',
-        created_by: createdBy,
-      });
-      await update('products', `id=eq.${encodeURIComponent(product.id)}`, { current_stock: product.stock });
-      result.stockSeeded += 1;
-    }
+    const createdBy = await findAdmin();
+    const stockResult = await rpc('import_initial_stock', {
+      p_receipt_id: receiptId,
+      p_movement_id: movementId,
+      p_product_id: product.id,
+      p_receipt_date: INITIAL_RECEIPT_DATE,
+      p_quantity: product.stock,
+      p_unit_cost: product.costPrice,
+      p_supplier_name: 'Initial inventory import',
+      p_created_by: createdBy,
+    });
+    if (stockResult?.[0]?.stock_applied) result.stockSeeded += 1;
   };
 
   for (const product of CATALOGUE) {
@@ -490,14 +504,37 @@ async function importToSupabase(plan) {
       result.saleItemsCreated += 1;
     }
   }
+  for (const date of dates) {
+    await rpc('reconcile_daily_order_counter', { p_sale_date: date });
+  }
   return result;
 }
 
-const parsed = parseSalesFile(inputPath);
-const plan = buildPlan(parsed.rows);
-if (!apply) {
-  printDryRun(parsed, plan);
-} else {
-  const result = await importToSupabase(plan);
-  console.log(JSON.stringify({ mode: 'applied', input: inputPath, ...result }, null, 2));
+const isMainModule = process.argv[1]
+  && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url;
+
+async function main() {
+  const parsed = parseSalesFile(inputPath);
+  const plan = buildPlan(parsed.rows);
+  if (!apply) {
+    printDryRun(parsed, plan);
+  } else {
+    const result = await importToSupabase(plan);
+    console.log(JSON.stringify({ mode: 'applied', input: inputPath, ...result }, null, 2));
+  }
 }
+
+if (isMainModule) await main();
+
+export {
+  CATALOGUE,
+  CATEGORY_OVERRIDES,
+  LEGACY_CODES,
+  buildPlan,
+  categoryFor,
+  importToSupabase,
+  mergeExistingProduct,
+  parseSalesFile,
+  resolveProduct,
+  stableUuid,
+};

@@ -18,6 +18,10 @@ const staffCredentials = { email: `local-staff-${suffix}@example.test`, password
 const createdUserIds = [];
 const createdSaleIds = [];
 let temporaryProductId;
+let counterSaleId;
+const counterDate = "2099-01-06";
+const importedReceiptIds = [];
+const importedMovementIds = [];
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -93,6 +97,68 @@ try {
   temporaryProductId = createdProduct?.id;
   assert(temporaryProductId, "Product RPC did not return a product.");
 
+  const initialReceiptId = randomUUID();
+  const initialMovementId = randomUUID();
+  importedReceiptIds.push(initialReceiptId);
+  importedMovementIds.push(initialMovementId);
+  const initialStockArgs = {
+    p_receipt_id: initialReceiptId,
+    p_movement_id: initialMovementId,
+    p_product_id: temporaryProductId,
+    p_receipt_date: "2099-01-01",
+    p_quantity: 2,
+    p_unit_cost: 1,
+    p_supplier_name: "Local historical import",
+    p_created_by: createdUserIds[0],
+  };
+  const { data: initialImportData, error: initialImportError } = await service.rpc("import_initial_stock", initialStockArgs);
+  if (initialImportError) throw new Error(`Initial stock RPC failed: ${initialImportError.message}`);
+  assert(rpcRow(initialImportData)?.stock_applied === true, "Initial stock RPC did not apply stock on first run.");
+  const { data: retryImportData, error: retryImportError } = await service.rpc("import_initial_stock", initialStockArgs);
+  if (retryImportError) throw new Error(`Initial stock retry failed: ${retryImportError.message}`);
+  assert(rpcRow(retryImportData)?.stock_applied === false, "Initial stock retry applied stock twice.");
+  const { count: receiptCount, error: receiptCountError } = await service
+    .from("stock_receipts")
+    .select("id", { count: "exact", head: true })
+    .eq("id", initialReceiptId);
+  if (receiptCountError) throw new Error(`Initial receipt check failed: ${receiptCountError.message}`);
+  assert(receiptCount === 1, "Initial stock retry duplicated the receipt.");
+  const { count: movementCount, error: movementCountError } = await service
+    .from("stock_movements")
+    .select("id", { count: "exact", head: true })
+    .eq("id", initialMovementId);
+  if (movementCountError) throw new Error(`Initial movement check failed: ${movementCountError.message}`);
+  assert(movementCount === 1, "Initial stock retry duplicated the movement.");
+
+  const partialReceiptId = randomUUID();
+  const partialMovementId = randomUUID();
+  importedReceiptIds.push(partialReceiptId);
+  importedMovementIds.push(partialMovementId);
+  const { error: partialReceiptError } = await service.from("stock_receipts").insert({
+    id: partialReceiptId,
+    receipt_date: "2099-01-01",
+    product_id: temporaryProductId,
+    quantity: 1,
+    unit_cost: 1,
+    supplier_name: "Partial import fixture",
+    created_by: createdUserIds[0],
+  });
+  if (partialReceiptError) throw new Error(`Partial receipt setup failed: ${partialReceiptError.message}`);
+  const { data: partialRepairData, error: partialRepairError } = await service.rpc("import_initial_stock", {
+    ...initialStockArgs,
+    p_receipt_id: partialReceiptId,
+    p_movement_id: partialMovementId,
+    p_quantity: 1,
+    p_supplier_name: "Partial import fixture",
+  });
+  if (partialRepairError) throw new Error(`Partial receipt repair failed: ${partialRepairError.message}`);
+  assert(rpcRow(partialRepairData)?.stock_applied === true, "Partial receipt was not repaired atomically.");
+
+  const { error: authenticatedImportError } = await admin.rpc("import_initial_stock", initialStockArgs);
+  assert(Boolean(authenticatedImportError), "Authenticated users can execute the service import RPC.");
+  const { error: authenticatedCounterError } = await admin.rpc("reconcile_daily_order_counter", { p_sale_date: counterDate });
+  assert(Boolean(authenticatedCounterError), "Authenticated users can execute the counter RPC.");
+
   const { error: stockInError } = await admin.rpc("stock_in", {
     p_product_id: temporaryProductId,
     p_receipt_date: "2099-01-01",
@@ -101,6 +167,13 @@ try {
     p_supplier_name: "Local test",
   });
   if (stockInError) throw new Error(`Stock-in RPC failed: ${stockInError.message}`);
+
+  const { data: beforeSimultaneous, error: beforeSimultaneousError } = await admin
+    .from("products")
+    .select("current_stock")
+    .eq("id", temporaryProductId)
+    .single();
+  if (beforeSimultaneousError) throw new Error(`Concurrent stock setup failed: ${beforeSimultaneousError.message}`);
 
   const concurrentDate = "2099-01-02";
   const simultaneousResults = await Promise.all([
@@ -131,7 +204,8 @@ try {
     .eq("id", temporaryProductId)
     .single();
   if (afterSimultaneousError) throw new Error(`Concurrent stock check failed: ${afterSimultaneousError.message}`);
-  assert(afterSimultaneous.current_stock === 0, "Concurrent orders changed stock incorrectly.");
+  const expectedAfterSimultaneous = beforeSimultaneous.current_stock - 2;
+  assert(afterSimultaneous.current_stock === expectedAfterSimultaneous, `Concurrent orders changed stock incorrectly (expected ${expectedAfterSimultaneous}, got ${afterSimultaneous.current_stock}).`);
 
   const { error: oversellStockInError } = await admin.rpc("stock_in", {
     p_product_id: temporaryProductId,
@@ -141,6 +215,30 @@ try {
     p_supplier_name: "Local test",
   });
   if (oversellStockInError) throw new Error(`Oversell setup failed: ${oversellStockInError.message}`);
+
+  const { data: beforeOversellSetup, error: beforeOversellSetupError } = await admin
+    .from("products")
+    .select("current_stock")
+    .eq("id", temporaryProductId)
+    .single();
+  if (beforeOversellSetupError) throw new Error(`Oversell stock setup failed: ${beforeOversellSetupError.message}`);
+  const excessStock = beforeOversellSetup.current_stock - 1;
+  if (excessStock > 0) {
+    const { error: oversellAdjustmentError } = await admin.rpc("adjust_stock", {
+      p_product_id: temporaryProductId,
+      p_direction: "decrease",
+      p_quantity: excessStock,
+      p_reason: "Local oversell fixture",
+    });
+    if (oversellAdjustmentError) throw new Error(`Oversell fixture adjustment failed: ${oversellAdjustmentError.message}`);
+  }
+  const { data: beforeOversell, error: beforeOversellError } = await admin
+    .from("products")
+    .select("current_stock")
+    .eq("id", temporaryProductId)
+    .single();
+  if (beforeOversellError) throw new Error(`Oversell stock check failed: ${beforeOversellError.message}`);
+  assert(beforeOversell.current_stock === 1, `Oversell fixture was not normalized (got ${beforeOversell.current_stock}).`);
 
   const oversellResults = await Promise.all([
     staff.rpc("create_sale", {
@@ -169,7 +267,8 @@ try {
     .eq("id", temporaryProductId)
     .single();
   if (afterOversellError) throw new Error(`Oversell stock check failed: ${afterOversellError.message}`);
-  assert(afterOversell.current_stock === 0, "Oversell race changed stock incorrectly.");
+  const expectedAfterOversell = beforeOversell.current_stock - 1;
+  assert(afterOversell.current_stock === expectedAfterOversell, `Oversell race changed stock incorrectly (expected ${expectedAfterOversell}, got ${afterOversell.current_stock}).`);
 
   const retryRequestId = randomUUID();
   const { data: firstSaleData, error: firstSaleError } = await staff.rpc("create_sale", {
@@ -258,14 +357,47 @@ try {
   });
   assert(Boolean(staffAdminError), "Staff could execute an Admin inventory operation.");
 
+  counterSaleId = randomUUID();
+  const { error: counterSaleError } = await service.from("sales").insert({
+    id: counterSaleId,
+    client_request_id: randomUUID(),
+    sale_date: counterDate,
+    daily_order_number: 99,
+    payment_method: "cash",
+    staff_id: createdUserIds[0],
+    grand_total: 0,
+    status: "completed",
+  });
+  if (counterSaleError) throw new Error(`Counter fixture setup failed: ${counterSaleError.message}`);
+  const { error: counterSeedError } = await service.from("daily_order_counters").upsert({
+    sale_date: counterDate,
+    next_order_number: 150,
+  });
+  if (counterSeedError) throw new Error(`Counter seed failed: ${counterSeedError.message}`);
+  const { data: counterData, error: counterError } = await service.rpc("reconcile_daily_order_counter", { p_sale_date: counterDate });
+  if (counterError) throw new Error(`Counter reconciliation failed: ${counterError.message}`);
+  assert(rpcRow(counterData)?.next_order_number >= 150, "Counter reconciliation lowered an existing counter.");
+  const { data: counterAfter, error: counterAfterError } = await service
+    .from("daily_order_counters")
+    .select("next_order_number")
+    .eq("sale_date", counterDate)
+    .single();
+  if (counterAfterError) throw new Error(`Counter check failed: ${counterAfterError.message}`);
+  assert(counterAfter.next_order_number >= 150, "Counter reconciliation did not preserve the larger value.");
+
   console.log("Local Supabase integration checks passed: RLS, atomicity, retry idempotency, oversell protection, and void safety.");
 } finally {
   await removeRows("stock_movements", "reference_id", createdSaleIds);
   await removeRows("sale_items", "sale_id", createdSaleIds);
   await removeRows("sales", "id", createdSaleIds);
+  if (counterSaleId) await removeRows("sales", "id", [counterSaleId]);
+  await removeRows("daily_order_counters", "sale_date", [counterDate]);
   if (temporaryProductId) {
+    await removeRows("stock_movements", "id", importedMovementIds);
     await removeRows("stock_movements", "product_id", [temporaryProductId]);
+    await removeRows("stock_receipts", "id", importedReceiptIds);
     await removeRows("stock_receipts", "product_id", [temporaryProductId]);
+    await removeRows("sale_items", "product_id", [temporaryProductId]);
     await removeRows("products", "id", [temporaryProductId]);
   }
   for (const userId of createdUserIds) await service.auth.admin.deleteUser(userId);
