@@ -77,8 +77,8 @@ export async function GET(request: NextRequest) {
   salesSheet.addRow(["Sale Date", "Order Number", "Product Code", "Product", "Quantity", "Unit Price", "Subtotal", "Payment Method", "Staff", "Sale Status"]);
   report.sales.forEach((sale) => salesSheet.addRow([new Date(`${sale.saleDate}T00:00:00`), sale.orderNumber, sale.productCode, sale.product, sale.quantity, sale.unitPrice, sale.subtotal, sale.paymentMethod, sale.staff, sale.status]));
   salesSheet.getColumn(1).numFmt = "yyyy-mm-dd";
-  salesSheet.getColumn(6).numFmt = '"RM"0.00';
-  salesSheet.getColumn(7).numFmt = '"RM"0.00';
+  salesSheet.getColumn(6).numFmt = '"HK$"0.00';
+  salesSheet.getColumn(7).numFmt = '"HK$"0.00';
   addTable(salesSheet, "SalesReport", 10);
   addSummary(salesSheet, "Total valid orders", report.summary.validOrders);
   addSummary(salesSheet, "Cash total", report.summary.cashTotal);
@@ -89,9 +89,9 @@ export async function GET(request: NextRequest) {
   const inventorySheet = workbook.addWorksheet("Inventory Report");
   inventorySheet.addRow(["Product Code", "Product", "Category", "Current Stock", "Cost Price", "Selling Price", "Inventory Value", "Minimum Stock", "Stock Status"]);
   report.inventory.forEach((product) => inventorySheet.addRow([product.product_code, product.name, product.category, product.current_stock, product.cost_price ?? null, product.selling_price, (product.cost_price ?? 0) * product.current_stock, product.minimum_stock, product.current_stock === 0 ? "Out of stock" : product.current_stock <= product.minimum_stock ? "Low stock" : "In stock"]));
-  inventorySheet.getColumn(5).numFmt = '"RM"0.00';
-  inventorySheet.getColumn(6).numFmt = '"RM"0.00';
-  inventorySheet.getColumn(7).numFmt = '"RM"0.00';
+  inventorySheet.getColumn(5).numFmt = '"HK$"0.00';
+  inventorySheet.getColumn(6).numFmt = '"HK$"0.00';
+  inventorySheet.getColumn(7).numFmt = '"HK$"0.00';
   addTable(inventorySheet, "InventoryReport", 9);
   addSummary(inventorySheet, "Total inventory value", report.inventory.reduce((sum, product) => sum + (product.cost_price ?? 0) * product.current_stock, 0));
   styleSheet(inventorySheet, 9);
@@ -99,9 +99,9 @@ export async function GET(request: NextRequest) {
   const profitSheet = workbook.addWorksheet("Monthly Profit Report");
   profitSheet.addRow(["Month", "Revenue", "Cost", "Profit", "Margin %"]);
   report.monthlyProfit.forEach((month) => profitSheet.addRow([month.month, month.revenue, month.cost, month.profit, month.margin]));
-  profitSheet.getColumn(2).numFmt = '"RM"0.00';
-  profitSheet.getColumn(3).numFmt = '"RM"0.00';
-  profitSheet.getColumn(4).numFmt = '"RM"0.00';
+  profitSheet.getColumn(2).numFmt = '"HK$"0.00';
+  profitSheet.getColumn(3).numFmt = '"HK$"0.00';
+  profitSheet.getColumn(4).numFmt = '"HK$"0.00';
   profitSheet.getColumn(5).numFmt = "0.00%";
   addTable(profitSheet, "MonthlyProfitReport", 5);
   addSummary(profitSheet, "Annual revenue", report.summary.revenue);

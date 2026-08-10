@@ -42,7 +42,7 @@ The application must be simple enough for non-technical staff, responsive on des
 ### Business Assumptions
 
 - The system serves a single tuck shop.
-- Currency is Malaysian Ringgit (`MYR`), displayed as `RM0.00`.
+- Currency is Hong Kong Dollar (`HKD`), displayed as `HK$0.00`.
 - Business timezone defaults to `Asia/Kuala_Lumpur` and is configurable through an environment variable.
 - Product quantities are whole units only.
 - Negative inventory is not allowed.
@@ -397,7 +397,7 @@ Summary:
 - Dark blue header background
 - White bold centred header text
 - Alternating white and light-grey body rows
-- `RM0.00` currency format
+- `HK$0.00` currency format
 - `0.00%` percentage format
 - Green, bold, larger summary rows
 - Automatic readable column widths with sensible maximum widths
@@ -534,7 +534,7 @@ A development-only seed command creates these products once:
 - P009 Ice Cream Cup
 - P010 Sandwich
 
-Use realistic MYR cost prices, selling prices, stock quantities, categories, and minimum-stock levels. Seed data must never run automatically in production.
+Use realistic HKD cost prices, selling prices, stock quantities, categories, and minimum-stock levels. Seed data must never run automatically in production.
 
 ## 16. UI and Accessibility
 

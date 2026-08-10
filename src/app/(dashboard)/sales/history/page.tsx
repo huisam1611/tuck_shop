@@ -35,10 +35,10 @@ export default async function SalesHistoryPage() {
                     <div className="flex flex-wrap items-center gap-3"><h2 className="text-lg font-semibold text-slate-950">{sale.sale_date}-{String(sale.daily_order_number).padStart(3, "0")}</h2><span className={`rounded-full px-3 py-1 text-xs font-semibold ${sale.status === "completed" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>{sale.status === "completed" ? "Completed" : "Voided"}</span></div>
                     <p className="mt-2 text-sm text-slate-500">{sale.payment_method === "cash" ? "Cash" : "E-payment"} · {sale.staff_name ?? "Current staff"} · {new Date(sale.created_at).toLocaleString("en-MY")}</p>
                   </div>
-                  <p className="text-2xl font-semibold tracking-tight text-slate-950">RM{sale.grand_total.toFixed(2)}</p>
+                  <p className="text-2xl font-semibold tracking-tight text-slate-950">HK${sale.grand_total.toFixed(2)}</p>
                 </div>
                 <ul className="mt-5 divide-y divide-slate-100 rounded-2xl bg-slate-50 px-4">
-                  {saleItems.map((item) => <li key={item.id} className="flex items-center justify-between gap-4 py-3 text-sm"><span className="text-slate-700">{item.product_code} · {item.product_name} × {item.quantity}</span><span className="font-semibold text-slate-800">RM{item.subtotal.toFixed(2)}</span></li>)}
+                  {saleItems.map((item) => <li key={item.id} className="flex items-center justify-between gap-4 py-3 text-sm"><span className="text-slate-700">{item.product_code} · {item.product_name} × {item.quantity}</span><span className="font-semibold text-slate-800">HK${item.subtotal.toFixed(2)}</span></li>)}
                 </ul>
                 {sale.status === "voided" && sale.void_reason ? <p className="mt-4 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-800"><span className="font-semibold">Void reason:</span> {sale.void_reason}</p> : null}
                 {canVoid && sale.status === "completed" ? <VoidSaleForm saleId={sale.id} /> : null}

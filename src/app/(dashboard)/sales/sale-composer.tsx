@@ -41,7 +41,7 @@ export function SaleComposer({ products }: { products: SaleProduct[] }) {
           <label className="flex-1 text-sm font-medium text-slate-700">
             Product
             <select value={selectedId} onChange={(event) => setSelectedId(event.target.value)} className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100">
-              {products.map((product) => <option key={product.id} value={product.id}>{product.product_code} · {product.name} · RM{product.selling_price.toFixed(2)}</option>)}
+              {products.map((product) => <option key={product.id} value={product.id}>{product.product_code} · {product.name} · HK${product.selling_price.toFixed(2)}</option>)}
             </select>
           </label>
           <label className="w-full text-sm font-medium text-slate-700 sm:w-28">
@@ -54,8 +54,8 @@ export function SaleComposer({ products }: { products: SaleProduct[] }) {
         <div className="mt-7 divide-y divide-slate-100">
           {cart.length === 0 ? <p className="rounded-2xl bg-slate-50 px-4 py-10 text-center text-sm text-slate-500">Add products to start this order.</p> : cart.map((item) => (
             <div key={item.id} className="flex items-center justify-between gap-4 py-4">
-              <div><p className="font-semibold text-slate-800">{item.name}</p><p className="mt-1 text-xs text-slate-500">{item.quantity} × RM{item.selling_price.toFixed(2)}</p></div>
-              <div className="flex items-center gap-4"><span className="font-semibold text-slate-800">RM{(item.quantity * item.selling_price).toFixed(2)}</span><button type="button" onClick={() => setCart((current) => current.filter((entry) => entry.id !== item.id))} className="text-xs font-semibold text-rose-600 hover:text-rose-700">Remove</button></div>
+              <div><p className="font-semibold text-slate-800">{item.name}</p><p className="mt-1 text-xs text-slate-500">{item.quantity} × HK${item.selling_price.toFixed(2)}</p></div>
+              <div className="flex items-center gap-4"><span className="font-semibold text-slate-800">HK${(item.quantity * item.selling_price).toFixed(2)}</span><button type="button" onClick={() => setCart((current) => current.filter((entry) => entry.id !== item.id))} className="text-xs font-semibold text-rose-600 hover:text-rose-700">Remove</button></div>
             </div>
           ))}
         </div>
@@ -63,7 +63,7 @@ export function SaleComposer({ products }: { products: SaleProduct[] }) {
 
       <div className="h-fit rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <p className="text-sm font-semibold text-slate-500">Order summary</p>
-        <p className="mt-3 text-4xl font-semibold tracking-tight text-slate-950">RM{total.toFixed(2)}</p>
+        <p className="mt-3 text-4xl font-semibold tracking-tight text-slate-950">HK${total.toFixed(2)}</p>
         <label className="mt-7 block text-sm font-medium text-slate-700">Sale date<input type="date" name="saleDate" defaultValue={new Date().toISOString().slice(0, 10)} className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100" /></label>
         <label className="mt-4 block text-sm font-medium text-slate-700">Payment method<select name="paymentMethod" defaultValue="cash" className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100"><option value="cash">Cash</option><option value="e_payment">E-payment</option></select></label>
         {state.error ? <p role="alert" className="mt-4 rounded-xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">{state.error}</p> : null}
