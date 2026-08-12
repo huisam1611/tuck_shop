@@ -109,4 +109,16 @@ describe("historical import existing-product policy", () => {
       category: "Snacks",
     })).toThrow(/名稱不一致/);
   });
+
+  it.each(["HK-058", "HK-999"])("does not exempt unapproved catalogue code %s", (code) => {
+    expect(() => mergeExistingProduct({ ...existing, product_code: code }, {
+      code,
+      name: "另一個產品",
+      stock: 1,
+      costPrice: 1,
+      sellingPrice: 1,
+      minimumStock: 1,
+      category: "Snacks",
+    })).toThrow(/名稱不一致/);
+  });
 });

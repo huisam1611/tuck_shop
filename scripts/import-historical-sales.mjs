@@ -89,6 +89,7 @@ const CATALOGUE = [
   category: categoryFor(name),
 }));
 
+const CATALOGUE_CODES = new Set(CATALOGUE.map((product) => product.code.toLowerCase()));
 const ALIASES = new Map([
   ['媽咪面', '媽咪面'],
   ['媽咪麵', '媽咪面'],
@@ -166,7 +167,7 @@ function categoryFor(name) {
 }
 
 function mergeExistingProduct(existing, product, { historical = false } = {}) {
-  const mappedSku = /^HK-\d{3}$/i.test(product.code);
+  const mappedSku = CATALOGUE_CODES.has(product.code.toLowerCase());
   if (!mappedSku && normalizeName(existing.name) !== normalizeName(product.name)) {
     throw new Error(`產品 code ${product.code} 已存在，但名稱不一致：${existing.name} / ${product.name}`);
   }

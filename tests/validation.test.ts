@@ -13,6 +13,10 @@ describe("validation schemas", () => {
   it("accepts a valid product and rejects negative prices", () => {
     const valid = { productCode: "P011", name: "Fruit Cup", category: "Food", costPrice: "1.50", sellingPrice: "2.50", minimumStock: "5" };
     expect(productSchema.safeParse(valid).success).toBe(true);
+    expect(productSchema.safeParse({ ...valid, costPrice: "" }).success).toBe(false);
+    expect(productSchema.safeParse({ ...valid, sellingPrice: "" }).success).toBe(false);
+    expect(productSchema.safeParse({ ...valid, minimumStock: "" }).success).toBe(false);
+    expect(productSchema.safeParse({ ...valid, costPrice: "0", sellingPrice: "0", minimumStock: "0" }).success).toBe(true);
     expect(productSchema.safeParse({ ...valid, sellingPrice: "-1" }).success).toBe(false);
   });
 

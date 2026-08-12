@@ -9,14 +9,13 @@ export const saleSchema = z.object({
 });
 
 export const voidSaleSchema = z.object({ saleId: z.string().uuid(), reason: z.string().trim().min(1).max(240) });
+const requiredNumber = (integer = false) => z.preprocess((v) => v === "" || v === null ? undefined : v, z.coerce.number().min(0).refine((v) => !integer || Number.isInteger(v)));
 
 export const productSchema = z.object({
   productCode: z.string().trim().min(1).max(40),
   name: z.string().trim().max(120).optional().or(z.literal("")),
   category: z.string().trim().refine((value) => ALL_PRODUCT_CATEGORIES.includes(value as (typeof ALL_PRODUCT_CATEGORIES)[number]), "Unsupported category"),
-  costPrice: z.coerce.number().min(0),
-  sellingPrice: z.coerce.number().min(0),
-  minimumStock: z.coerce.number().int().min(0),
+  costPrice: requiredNumber(), sellingPrice: requiredNumber(), minimumStock: requiredNumber(true),
   nameZh: z.string().trim().max(120).optional().or(z.literal("")), nameEn: z.string().trim().max(120).optional().or(z.literal("")), brand: z.string().trim().max(80).optional().or(z.literal("")), flavour: z.string().trim().max(80).optional().or(z.literal("")), size: z.string().trim().max(40).optional().or(z.literal("")), packageType: z.string().trim().max(40).optional().or(z.literal("")), barcode: z.string().trim().max(80).optional().or(z.literal("")),
 }).refine((v) => Boolean(v.name || v.nameZh || v.brand || v.nameEn), "Name or brand is required");
 

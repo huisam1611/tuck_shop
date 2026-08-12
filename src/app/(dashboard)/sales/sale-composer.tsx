@@ -42,13 +42,14 @@ export function SaleComposer({ products }: { products: SaleProduct[] }) {
       <input ref={requestIdInput} type="hidden" name="clientRequestId" defaultValue="" />
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          <label className="flex-1 text-sm font-medium text-slate-700">
-            Product
-            <input aria-label="Search products" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search SKU, name, brand" className="mt-2 h-10 w-full rounded-xl border border-slate-200 px-3 text-sm" />
-            <select value={effectiveSelectedId} onChange={(event) => setSelectedId(event.target.value)} className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3" disabled={!filteredProducts.length}>
+          <div className="flex-1">
+            <label htmlFor="sale-product-search" className="text-sm font-medium text-slate-700">Search products</label>
+            <input id="sale-product-search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search SKU, name, brand" className="mt-2 h-10 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100" />
+            <label htmlFor="sale-product-select" className="sr-only">Select product</label>
+            <select id="sale-product-select" value={effectiveSelectedId} onChange={(event) => setSelectedId(event.target.value)} className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100" disabled={!filteredProducts.length}>
               {filteredProducts.map((product) => <option key={product.id} value={product.id}>{product.name} · HK${product.selling_price.toFixed(2)} · {product.current_stock} left ({product.product_code})</option>)}
             </select>
-          </label>
+          </div>
           <label className="w-full text-sm font-medium text-slate-700 sm:w-28">
             Quantity
             <input type="number" min={1} value={quantity} onChange={(event) => setQuantity(Number(event.target.value))} className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100" />
