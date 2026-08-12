@@ -8,6 +8,9 @@ alter table public.products
   add column if not exists package_type text,
   add column if not exists barcode text;
 
+-- Preserve the legacy test category using the casing already supported by the app.
+update public.products set category = 'Test' where trim(category) = 'TEST';
+
 alter table public.products
   add constraint products_name_zh_length check (name_zh is null or char_length(trim(name_zh)) <= 120),
   add constraint products_name_en_length check (name_en is null or char_length(trim(name_en)) <= 120),
