@@ -41,6 +41,9 @@ yarn-error.log*
 # local production backups
 /backups/
 
+# Codex local metadata and session files
+/.codex/
+
 # vercel
 .vercel
 
