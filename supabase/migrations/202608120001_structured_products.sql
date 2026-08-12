@@ -18,7 +18,7 @@ alter table public.products
   add constraint products_barcode_length check (barcode is null or char_length(trim(barcode)) <= 80);
 
 alter table public.products
-  add constraint products_category_allowed check (trim(category) in ('飲品','薯片／脆片','糖果','餅乾','紫菜','肉類零食','堅果／豆類','即食麵','乳製品','啫喱','調味／食品配料','紙品／日用品','其他','Snacks','Drinks','Food','Frozen','Household','Test'));
+  add constraint products_category_allowed check (trim(category) in ('飲品','薯片／脆片','糖果','餅乾','紫菜','肉類零食','堅果／豆類','即食麵','乳製品','啫喱','調味／食品配料','紙品／日用品','其他','Snacks','Drinks','Food','Frozen','Household','Test','Historical'));
 
 create unique index if not exists products_barcode_lower_idx on public.products (lower(barcode)) where nullif(trim(barcode), '') is not null;
 create index if not exists products_brand_lower_idx on public.products (lower(brand));

@@ -3,6 +3,7 @@
 import { useActionState, useMemo, useRef, useState } from "react";
 
 import { createSale, type SaleActionState } from "./actions";
+import { filterSaleProducts, effectiveSaleProductId } from "./sale-product-search";
 
 type SaleProduct = { id: string; name: string; product_code: string; selling_price: number; current_stock: number; name_zh?: string | null; name_en?: string | null; brand?: string | null; category?: string | null; flavour?: string | null; barcode?: string | null };
 type CartItem = SaleProduct & { quantity: number };
@@ -17,14 +18,15 @@ export function SaleComposer({ products }: { products: SaleProduct[] }) {
   const requestIdInput = useRef<HTMLInputElement>(null);
   const [state, formAction, pending] = useActionState(createSale, initialState);
   const total = useMemo(() => cart.reduce((sum, item) => sum + item.quantity * item.selling_price, 0), [cart]);
-  const filteredProducts = useMemo(() => { const q = search.trim().toLowerCase(); return products.filter((p) => !q || [p.product_code,p.name,p.name_zh,p.name_en,p.brand,p.category,p.flavour,p.barcode].filter(Boolean).some((v) => String(v).toLowerCase().includes(q))); }, [products, search]);
+  const filteredProducts = useMemo(() => filterSaleProducts(products, search), [products, search]);
+  const effectiveSelectedId = effectiveSaleProductId(filteredProducts, selectedId);
 
   function ensureRequestId() {
     if (requestIdInput.current && !requestIdInput.current.value) requestIdInput.current.value = crypto.randomUUID();
   }
 
   function addItem() {
-    const product = products.find((item) => item.id === selectedId);
+    const product = filteredProducts.find((item) => item.id === effectiveSelectedId);
     if (!product || quantity < 1) return;
     setCart((current) => {
       const existing = current.find((item) => item.id === product.id);
@@ -43,7 +45,7 @@ export function SaleComposer({ products }: { products: SaleProduct[] }) {
           <label className="flex-1 text-sm font-medium text-slate-700">
             Product
             <input aria-label="Search products" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search SKU, name, brand" className="mt-2 h-10 w-full rounded-xl border border-slate-200 px-3 text-sm" />
-            <select value={selectedId} onChange={(event) => setSelectedId(event.target.value)} className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3">
+            <select value={effectiveSelectedId} onChange={(event) => setSelectedId(event.target.value)} className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3" disabled={!filteredProducts.length}>
               {filteredProducts.map((product) => <option key={product.id} value={product.id}>{product.name} · HK${product.selling_price.toFixed(2)} · {product.current_stock} left ({product.product_code})</option>)}
             </select>
           </label>
@@ -51,7 +53,7 @@ export function SaleComposer({ products }: { products: SaleProduct[] }) {
             Quantity
             <input type="number" min={1} value={quantity} onChange={(event) => setQuantity(Number(event.target.value))} className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100" />
           </label>
-          <button type="button" onClick={addItem} className="h-11 rounded-xl border border-blue-200 px-4 text-sm font-semibold text-blue-700 hover:bg-blue-50">Add</button>
+          <button type="button" onClick={addItem} disabled={!filteredProducts.length} className="h-11 rounded-xl border border-blue-200 px-4 text-sm font-semibold text-blue-700 hover:bg-blue-50 disabled:opacity-40">Add</button>
         </div>
 
         <div className="mt-7 divide-y divide-slate-100">

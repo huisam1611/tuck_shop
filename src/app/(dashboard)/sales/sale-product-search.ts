@@ -1,0 +1,3 @@
+export type SearchableSaleProduct = { id: string; product_code: string; name: string; name_zh?: string | null; name_en?: string | null; brand?: string | null; category?: string | null; flavour?: string | null; barcode?: string | null };
+export function filterSaleProducts<T extends SearchableSaleProduct>(products: T[], query: string): T[] { const q = query.trim().toLowerCase(); return products.filter((p) => !q || [p.product_code,p.name,p.name_zh,p.name_en,p.brand,p.category,p.flavour,p.barcode].filter(Boolean).some((v) => String(v).toLowerCase().includes(q))); }
+export function effectiveSaleProductId<T extends SearchableSaleProduct>(products: T[], selectedId: string): string { return products.some((p) => p.id === selectedId) ? selectedId : products[0]?.id ?? ""; }

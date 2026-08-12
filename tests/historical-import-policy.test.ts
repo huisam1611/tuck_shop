@@ -86,9 +86,21 @@ describe("historical import existing-product policy", () => {
     });
   });
 
-  it("stops when a product code has a different name", () => {
-    expect(() => mergeExistingProduct(existing, {
+  it("allows an approved HK SKU to use its canonical display name on retry", () => {
+    expect(mergeExistingProduct({ ...existing, name: "Cool 礦泉水 750ml" }, {
       code: "HK-001",
+      name: "750 cool 礦泉水",
+      stock: 96,
+      costPrice: 2.17,
+      sellingPrice: 2.5,
+      minimumStock: 20,
+      category: "Drinks",
+    })).toMatchObject({ id: "product-id", name: "Cool 礦泉水 750ml" });
+  });
+
+  it("stops when a non-catalogue product code has a different name", () => {
+    expect(() => mergeExistingProduct({ ...existing, product_code: "LEGACY-001" }, {
+      code: "LEGACY-001",
       name: "另一個產品",
       stock: 1,
       costPrice: 1,

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ALL_PRODUCT_CATEGORIES } from "./product-categories";
 
 export const saleSchema = z.object({
   saleDate: z.string().date(),
@@ -12,12 +13,12 @@ export const voidSaleSchema = z.object({ saleId: z.string().uuid(), reason: z.st
 export const productSchema = z.object({
   productCode: z.string().trim().min(1).max(40),
   name: z.string().trim().max(120).optional().or(z.literal("")),
-  category: z.string().trim().min(1).max(80),
+  category: z.string().trim().refine((value) => ALL_PRODUCT_CATEGORIES.includes(value as (typeof ALL_PRODUCT_CATEGORIES)[number]), "Unsupported category"),
   costPrice: z.coerce.number().min(0),
   sellingPrice: z.coerce.number().min(0),
   minimumStock: z.coerce.number().int().min(0),
   nameZh: z.string().trim().max(120).optional().or(z.literal("")), nameEn: z.string().trim().max(120).optional().or(z.literal("")), brand: z.string().trim().max(80).optional().or(z.literal("")), flavour: z.string().trim().max(80).optional().or(z.literal("")), size: z.string().trim().max(40).optional().or(z.literal("")), packageType: z.string().trim().max(40).optional().or(z.literal("")), barcode: z.string().trim().max(80).optional().or(z.literal("")),
-});
+}).refine((v) => Boolean(v.name || v.nameZh || v.brand || v.nameEn), "Name or brand is required");
 
 export const updateProductSchema = productSchema.extend({
   productId: z.string().uuid(),

@@ -392,6 +392,7 @@ export type Database = {
     Views: {
       staff_inventory: {
         Row: {
+          barcode: string | null; brand: string | null; name_en: string | null; name_zh: string | null; flavour: string | null; size: string | null; package_type: string | null
           category: string | null
           current_stock: number | null
           id: string | null
@@ -401,6 +402,7 @@ export type Database = {
           status: string | null
         }
         Insert: {
+          barcode?: string | null; brand?: string | null; name_en?: string | null; name_zh?: string | null; flavour?: string | null; size?: string | null; package_type?: string | null
           category?: string | null
           current_stock?: number | null
           id?: string | null
@@ -410,6 +412,7 @@ export type Database = {
           status?: string | null
         }
         Update: {
+          barcode?: string | null; brand?: string | null; name_en?: string | null; name_zh?: string | null; flavour?: string | null; size?: string | null; package_type?: string | null
           category?: string | null
           current_stock?: number | null
           id?: string | null
@@ -422,6 +425,7 @@ export type Database = {
       }
       staff_products: {
         Row: {
+          barcode: string | null; brand: string | null; name_en: string | null; name_zh: string | null; flavour: string | null; size: string | null; package_type: string | null
           category: string | null
           current_stock: number | null
           id: string | null
@@ -432,6 +436,7 @@ export type Database = {
           status: string | null
         }
         Insert: {
+          barcode?: string | null; brand?: string | null; name_en?: string | null; name_zh?: string | null; flavour?: string | null; size?: string | null; package_type?: string | null
           category?: string | null
           current_stock?: number | null
           id?: string | null
@@ -442,6 +447,7 @@ export type Database = {
           status?: string | null
         }
         Update: {
+          barcode?: string | null; brand?: string | null; name_en?: string | null; name_zh?: string | null; flavour?: string | null; size?: string | null; package_type?: string | null
           category?: string | null
           current_stock?: number | null
           id?: string | null

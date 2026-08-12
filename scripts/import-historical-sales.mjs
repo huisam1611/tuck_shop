@@ -166,7 +166,8 @@ function categoryFor(name) {
 }
 
 function mergeExistingProduct(existing, product, { historical = false } = {}) {
-  if (normalizeName(existing.name) !== normalizeName(product.name)) {
+  const mappedSku = /^HK-\d{3}$/i.test(product.code);
+  if (!mappedSku && normalizeName(existing.name) !== normalizeName(product.name)) {
     throw new Error(`產品 code ${product.code} 已存在，但名稱不一致：${existing.name} / ${product.name}`);
   }
 
@@ -529,12 +530,12 @@ if (isMainModule) await main();
 
 export {
   CATALOGUE,
+  mergeExistingProduct,
   CATEGORY_OVERRIDES,
   LEGACY_CODES,
   buildPlan,
   categoryFor,
   importToSupabase,
-  mergeExistingProduct,
   parseSalesFile,
   resolveProduct,
   stableUuid,
