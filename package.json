@@ -10,8 +10,10 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
     "verify:local": "node scripts/verify-local-supabase.mjs",
+    "verify:sales-replacement": "node scripts/verify-sales-history-replacement.mjs",
     "smoke:app": "node scripts/smoke-app.mjs",
-    "import:historical": "node scripts/import-historical-sales.mjs"
+    "import:historical": "node scripts/import-historical-sales.mjs",
+    "replace:sales-history": "node scripts/replace-sales-history.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
