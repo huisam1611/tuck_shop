@@ -16,6 +16,13 @@ export type Product = {
   current_stock: number;
   minimum_stock: number;
   status: "active" | "inactive";
+  name_zh?: string | null;
+  name_en?: string | null;
+  brand?: string | null;
+  flavour?: string | null;
+  size?: string | null;
+  package_type?: string | null;
+  barcode?: string | null;
 };
 
 export type Profile = { id: string; name: string; role: "admin" | "staff"; is_active: boolean };
@@ -111,7 +118,7 @@ export const demoProducts: Product[] = [
   { id: "demo-008", product_code: "P008", name: "Chewing Gum", category: "Snacks", cost_price: 0.4, selling_price: 0.8, current_stock: 45, minimum_stock: 12, status: "active" },
   { id: "demo-009", product_code: "P009", name: "Ice Cream Cup", category: "Frozen", cost_price: 1.5, selling_price: 2.5, current_stock: 12, minimum_stock: 6, status: "active" },
   { id: "demo-010", product_code: "P010", name: "Sandwich", category: "Food", cost_price: 2.2, selling_price: 3.5, current_stock: 10, minimum_stock: 5, status: "active" },
-];
+].map((product): Product => ({ ...product, name_zh: product.name, status: product.status as Product["status"] }));
 
 export async function listProducts(): Promise<Product[]> {
   if (!hasSupabaseEnv()) return demoProducts;
@@ -338,7 +345,7 @@ export async function searchRecords(query: string): Promise<SearchResults> {
   const items = await listSaleItems(sales.map((sale) => sale.id));
   const itemNamesBySale = new Map<string, string[]>();
   for (const item of items) itemNamesBySale.set(item.sale_id, [...(itemNamesBySale.get(item.sale_id) ?? []), `${item.product_code} ${item.product_name}`]);
-  const productMatches = products.filter((product) => [product.product_code, product.name, product.category].some((value) => value.toLowerCase().includes(search)));
+  const productMatches = products.filter((product) => [product.product_code, product.name, product.name_zh, product.name_en, product.brand, product.category, product.flavour, product.barcode].filter(Boolean).some((value) => String(value).toLowerCase().includes(search)));
   const saleMatches = sales.filter((sale) => {
     const order = `${sale.sale_date}-${String(sale.daily_order_number).padStart(3, "0")}`;
     const names = itemNamesBySale.get(sale.id) ?? [];

@@ -4,7 +4,7 @@ import { useActionState, useMemo, useRef, useState } from "react";
 
 import { createSale, type SaleActionState } from "./actions";
 
-type SaleProduct = { id: string; name: string; product_code: string; selling_price: number; current_stock: number };
+type SaleProduct = { id: string; name: string; product_code: string; selling_price: number; current_stock: number; name_zh?: string | null; name_en?: string | null; brand?: string | null; category?: string | null; flavour?: string | null; barcode?: string | null };
 type CartItem = SaleProduct & { quantity: number };
 
 const initialState: SaleActionState = {};
@@ -13,9 +13,11 @@ export function SaleComposer({ products }: { products: SaleProduct[] }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedId, setSelectedId] = useState(products[0]?.id ?? "");
   const [quantity, setQuantity] = useState(1);
+  const [search, setSearch] = useState("");
   const requestIdInput = useRef<HTMLInputElement>(null);
   const [state, formAction, pending] = useActionState(createSale, initialState);
   const total = useMemo(() => cart.reduce((sum, item) => sum + item.quantity * item.selling_price, 0), [cart]);
+  const filteredProducts = useMemo(() => { const q = search.trim().toLowerCase(); return products.filter((p) => !q || [p.product_code,p.name,p.name_zh,p.name_en,p.brand,p.category,p.flavour,p.barcode].filter(Boolean).some((v) => String(v).toLowerCase().includes(q))); }, [products, search]);
 
   function ensureRequestId() {
     if (requestIdInput.current && !requestIdInput.current.value) requestIdInput.current.value = crypto.randomUUID();
@@ -40,8 +42,9 @@ export function SaleComposer({ products }: { products: SaleProduct[] }) {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <label className="flex-1 text-sm font-medium text-slate-700">
             Product
-            <select value={selectedId} onChange={(event) => setSelectedId(event.target.value)} className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-100">
-              {products.map((product) => <option key={product.id} value={product.id}>{product.product_code} · {product.name} · HK${product.selling_price.toFixed(2)}</option>)}
+            <input aria-label="Search products" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search SKU, name, brand" className="mt-2 h-10 w-full rounded-xl border border-slate-200 px-3 text-sm" />
+            <select value={selectedId} onChange={(event) => setSelectedId(event.target.value)} className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3">
+              {filteredProducts.map((product) => <option key={product.id} value={product.id}>{product.name} · HK${product.selling_price.toFixed(2)} · {product.current_stock} left ({product.product_code})</option>)}
             </select>
           </label>
           <label className="w-full text-sm font-medium text-slate-700 sm:w-28">

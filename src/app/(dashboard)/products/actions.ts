@@ -10,7 +10,7 @@ export type ProductActionState = { error?: string; success?: string };
 export async function createProduct(_previousState: ProductActionState, formData: FormData): Promise<ProductActionState> {
   const values = productSchema.safeParse({
     productCode: formData.get("productCode"), name: formData.get("name"), category: formData.get("category"),
-    costPrice: formData.get("costPrice"), sellingPrice: formData.get("sellingPrice"), minimumStock: formData.get("minimumStock"),
+    costPrice: formData.get("costPrice"), sellingPrice: formData.get("sellingPrice"), minimumStock: formData.get("minimumStock"), nameZh: formData.get("nameZh"), nameEn: formData.get("nameEn"), brand: formData.get("brand"), flavour: formData.get("flavour"), size: formData.get("size"), packageType: formData.get("packageType"), barcode: formData.get("barcode"),
   });
   if (!values.success) return { error: "Check the product code, name, category, prices, and minimum stock." };
 
@@ -18,11 +18,12 @@ export async function createProduct(_previousState: ProductActionState, formData
     const supabase = await createClient();
     const { error } = await supabase.rpc("create_product", {
       p_product_code: values.data.productCode,
-      p_name: values.data.name,
+      p_name: values.data.name ?? "",
       p_category: values.data.category,
       p_cost_price: values.data.costPrice,
       p_selling_price: values.data.sellingPrice,
       p_minimum_stock: values.data.minimumStock,
+      p_name_zh: values.data.nameZh || null, p_name_en: values.data.nameEn || null, p_brand: values.data.brand || null, p_flavour: values.data.flavour || null, p_size: values.data.size || null, p_package_type: values.data.packageType || null, p_barcode: values.data.barcode || null,
     });
     revalidatePath("/products");
     return error ? { error: error.message } : { success: "Product created." };
@@ -41,6 +42,7 @@ export async function updateProduct(_previousState: ProductActionState, formData
     sellingPrice: formData.get("sellingPrice"),
     minimumStock: formData.get("minimumStock"),
     status: formData.get("status"),
+    nameZh: formData.get("nameZh"), nameEn: formData.get("nameEn"), brand: formData.get("brand"), flavour: formData.get("flavour"), size: formData.get("size"), packageType: formData.get("packageType"), barcode: formData.get("barcode"),
   });
   if (!values.success) return { error: "Check the product code, name, category, prices, stock, and status." };
 
@@ -49,12 +51,13 @@ export async function updateProduct(_previousState: ProductActionState, formData
     const { error } = await supabase.rpc("update_product", {
       p_product_id: values.data.productId,
       p_product_code: values.data.productCode,
-      p_name: values.data.name,
+      p_name: values.data.name ?? "",
       p_category: values.data.category,
       p_cost_price: values.data.costPrice,
       p_selling_price: values.data.sellingPrice,
       p_minimum_stock: values.data.minimumStock,
       p_status: values.data.status,
+      p_name_zh: values.data.nameZh || null, p_name_en: values.data.nameEn || null, p_brand: values.data.brand || null, p_flavour: values.data.flavour || null, p_size: values.data.size || null, p_package_type: values.data.packageType || null, p_barcode: values.data.barcode || null,
     });
     if (error) return { error: error.message };
     revalidatePath("/products");

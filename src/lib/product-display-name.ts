@@ -7,7 +7,7 @@ export type ProductDisplayParts = {
   package_type?: string | null;
 };
 
-const clean = (value: unknown) => String(value ?? "").trim().replace(/[|｜]+$/u, "");
+const clean = (value: unknown) => String(value ?? "").trim().replace(/^[|｜]+|[|｜]+$/gu, "");
 
 /** Build the compact catalogue label from structured fields. */
 export function buildProductDisplayName(parts: ProductDisplayParts): string {

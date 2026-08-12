@@ -11,11 +11,12 @@ export const voidSaleSchema = z.object({ saleId: z.string().uuid(), reason: z.st
 
 export const productSchema = z.object({
   productCode: z.string().trim().min(1).max(40),
-  name: z.string().trim().min(1).max(120),
+  name: z.string().trim().max(120).optional().or(z.literal("")),
   category: z.string().trim().min(1).max(80),
   costPrice: z.coerce.number().min(0),
   sellingPrice: z.coerce.number().min(0),
   minimumStock: z.coerce.number().int().min(0),
+  nameZh: z.string().trim().max(120).optional().or(z.literal("")), nameEn: z.string().trim().max(120).optional().or(z.literal("")), brand: z.string().trim().max(80).optional().or(z.literal("")), flavour: z.string().trim().max(80).optional().or(z.literal("")), size: z.string().trim().max(40).optional().or(z.literal("")), packageType: z.string().trim().max(40).optional().or(z.literal("")), barcode: z.string().trim().max(80).optional().or(z.literal("")),
 });
 
 export const updateProductSchema = productSchema.extend({
