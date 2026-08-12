@@ -98,6 +98,7 @@ try {
   const createdProduct = rpcRow(createdProductData);
   temporaryProductId = createdProduct?.id;
   assert(temporaryProductId, "Product RPC did not return a product.");
+  assert(createdProduct?.name === "Local Concurrency Product", "Structured product display name compatibility failed.");
 
   const initialReceiptId = randomUUID();
   const initialMovementId = randomUUID();

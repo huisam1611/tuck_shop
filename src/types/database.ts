@@ -26,6 +26,8 @@ export type Database = {
       }
       products: {
         Row: {
+          barcode: string | null
+          brand: string | null
           category: string
           cost_price: number
           created_at: string
@@ -33,12 +35,19 @@ export type Database = {
           id: string
           minimum_stock: number
           name: string
+          name_en: string | null
+          name_zh: string | null
+          flavour: string | null
+          size: string | null
+          package_type: string | null
           product_code: string
           selling_price: number
           status: string
           updated_at: string
         }
         Insert: {
+          barcode?: string | null
+          brand?: string | null
           category: string
           cost_price: number
           created_at?: string
@@ -46,12 +55,19 @@ export type Database = {
           id?: string
           minimum_stock?: number
           name: string
+          name_en?: string | null
+          name_zh?: string | null
+          flavour?: string | null
+          size?: string | null
+          package_type?: string | null
           product_code: string
           selling_price: number
           status?: string
           updated_at?: string
         }
         Update: {
+          barcode?: string | null
+          brand?: string | null
           category?: string
           cost_price?: number
           created_at?: string
@@ -59,6 +75,11 @@ export type Database = {
           id?: string
           minimum_stock?: number
           name?: string
+          name_en?: string | null
+          name_zh?: string | null
+          flavour?: string | null
+          size?: string | null
+          package_type?: string | null
           product_code?: string
           selling_price?: number
           status?: string
@@ -542,14 +563,23 @@ export type Database = {
       }
       create_product: {
         Args: {
+          p_barcode?: string | null
+          p_brand?: string | null
           p_category: string
           p_cost_price: number
           p_minimum_stock: number
           p_name: string
           p_product_code: string
           p_selling_price: number
+          p_name_en?: string | null
+          p_name_zh?: string | null
+          p_flavour?: string | null
+          p_size?: string | null
+          p_package_type?: string | null
         }
         Returns: {
+          barcode: string | null
+          brand: string | null
           category: string
           cost_price: number
           created_at: string
@@ -557,6 +587,11 @@ export type Database = {
           id: string
           minimum_stock: number
           name: string
+          name_en: string | null
+          name_zh: string | null
+          flavour: string | null
+          size: string | null
+          package_type: string | null
           product_code: string
           selling_price: number
           status: string
@@ -614,6 +649,8 @@ export type Database = {
       }
       update_product: {
         Args: {
+          p_barcode?: string | null
+          p_brand?: string | null
           p_category: string
           p_cost_price: number
           p_minimum_stock: number
@@ -622,8 +659,15 @@ export type Database = {
           p_product_id: string
           p_selling_price: number
           p_status: string
+          p_name_en?: string | null
+          p_name_zh?: string | null
+          p_flavour?: string | null
+          p_size?: string | null
+          p_package_type?: string | null
         }
         Returns: {
+          barcode: string | null
+          brand: string | null
           category: string
           cost_price: number
           created_at: string
@@ -631,6 +675,11 @@ export type Database = {
           id: string
           minimum_stock: number
           name: string
+          name_en: string | null
+          name_zh: string | null
+          flavour: string | null
+          size: string | null
+          package_type: string | null
           product_code: string
           selling_price: number
           status: string
