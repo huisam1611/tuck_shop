@@ -7,6 +7,8 @@ describe("catalogue migration safety", () => {
     expect(sql).toContain("create temp table catalogue_mapping"); expect(sql).toContain("insert into catalogue_mapping values"); expect(sql).toContain("HK-001','礦泉水"); expect(sql).toContain("HK-014',null,null,'維他奶"); expect(sql).toContain("HK-057','戒指糖");
     expect(sql).toContain("mapped_count<>57");
     expect(sql).toContain("distinct_count<>57");
+    expect(sql).toContain("existing_count=0");
+    expect(sql).toContain("existing_count<>57");
     expect(sql).toContain("updated_count<>57");
     expect(sql.match(/insert\s+into\s+catalogue_mapping/gi) ?? []).toHaveLength(1);
   });

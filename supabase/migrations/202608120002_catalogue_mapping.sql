@@ -1,6 +1,6 @@
 begin;
 do $$
-declare mapped_count int; distinct_count int; updated_count int;
+declare mapped_count int; distinct_count int; existing_count int; updated_count int;
 begin
   create temp table catalogue_mapping(product_code text primary key,name_zh text,name_en text,brand text,flavour text,size text,package_type text,barcode text,category text) on commit drop;
   insert into catalogue_mapping values
@@ -8,7 +8,14 @@ begin
   select count(*),count(distinct lower(product_code)) into mapped_count,distinct_count from catalogue_mapping;
   if mapped_count<>57 or distinct_count<>57 then raise exception 'mapping cardinality'; end if;
   if exists((select product_code from catalogue_mapping) except (select format('HK-%s',lpad(n::text,3,'0')) from generate_series(1,57)n)) or exists((select format('HK-%s',lpad(n::text,3,'0')) from generate_series(1,57)n) except (select product_code from catalogue_mapping)) then raise exception 'mapping code set'; end if;
-  if (select count(*) from public.products p join catalogue_mapping m on lower(p.product_code)=lower(m.product_code))<>57 then raise exception 'products missing'; end if;
+  select count(*) into existing_count
+  from public.products p
+  join catalogue_mapping m on lower(p.product_code)=lower(m.product_code);
+  if existing_count=0 then
+    raise notice 'No HK catalogue exists; skipping structured catalogue backfill';
+    return;
+  end if;
+  if existing_count<>57 then raise exception 'Expected all 57 HK catalogue products, found %',existing_count; end if;
   update public.products p set name_zh=m.name_zh,name_en=m.name_en,brand=m.brand,flavour=m.flavour,size=m.size,package_type=m.package_type,barcode=m.barcode,category=m.category from catalogue_mapping m where lower(p.product_code)=lower(m.product_code);
   get diagnostics updated_count=row_count; if updated_count<>57 then raise exception 'updated %',updated_count; end if;
   if exists(select 1 from public.products p join catalogue_mapping m on lower(p.product_code)=lower(m.product_code) where p.name_zh is distinct from m.name_zh or p.name_en is distinct from m.name_en or p.brand is distinct from m.brand or p.flavour is distinct from m.flavour or p.size is distinct from m.size or p.package_type is distinct from m.package_type or p.barcode is distinct from m.barcode or p.category is distinct from m.category) then raise exception 'post assertion'; end if;
