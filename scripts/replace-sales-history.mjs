@@ -144,7 +144,8 @@ function validateBackupDataCounts(sql, expectedCounts) {
       || Number(columnValue(sales, left, 'daily_order_number')) - Number(columnValue(sales, right, 'daily_order_number')))
     .map((row) => {
       const itemText = [...(itemsBySale.get(columnValue(sales, row, 'id')) ?? [])]
-        .sort((left, right) => columnValue(items, left, 'product_id').localeCompare(columnValue(items, right, 'product_id')))
+        .sort((left, right) => columnValue(items, left, 'product_id').localeCompare(columnValue(items, right, 'product_id'))
+          || columnValue(items, left, 'id').localeCompare(columnValue(items, right, 'id')))
         .map((item) => `${columnValue(items, item, 'product_id')}:${columnValue(items, item, 'quantity')}`)
         .join(',');
       return [
@@ -166,7 +167,9 @@ function validateBackupDataCounts(sql, expectedCounts) {
     .map((row) => `${columnValue(counters, row, 'sale_date')}|${columnValue(counters, row, 'next_order_number')}`));
   const hashes = { payloadHash: salesPayloadHash, saleMovementHash, counterHash };
   for (const [key, value] of Object.entries(hashes)) {
-    if (value !== expectedCounts[key]) throw new Error(`Backup data.sql ${key} does not match the frozen database`);
+    if (value !== expectedCounts[key]) {
+      throw new Error(`Backup data.sql ${key} ${value} does not match frozen database ${expectedCounts[key]}`);
+    }
   }
 }
 

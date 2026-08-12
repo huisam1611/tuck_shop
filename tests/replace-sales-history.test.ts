@@ -160,6 +160,8 @@ describe("replace sales SQL policy", () => {
     expect(sql).toContain("'counterMismatchCount'");
     expect(sql).toContain("'saleMovementHash'");
     expect(sql).toContain("Product stock or ledger changed inconsistently during history replacement");
+    const deterministicHashSql = readFileSync("supabase/migrations/202608130002_deterministic_sales_hash.sql", "utf8");
+    expect(deterministicHashSql).toContain("order by item.product_id, item.id");
   });
 });
 
