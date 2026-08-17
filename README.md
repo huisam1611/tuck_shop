@@ -1,20 +1,46 @@
 # Tuck Shop Sales & Inventory Management System
 
-Next.js 16 + Supabase application for recording school tuck shop sales, controlling stock, and exporting reports.
+English documentation for the Tuck Shop Keeper / POS application. 繁體中文版：[README_zh.md](./README_zh.md)
 
-## Current implementation
+This is a Next.js 16 + Supabase application for recording tuck-shop sales, managing inventory, maintaining a structured product catalogue, and exporting reports.
 
-- Foundation: Next.js App Router, Tailwind CSS, shadcn/ui, responsive shell
-- Auth: Supabase email/password action, protected Next.js 16 proxy, logout
-- Sales: multi-item sale composer with server-side validation, retry-safe client request IDs, history, and Admin voiding
-- Products: Admin create/edit/status/safe-delete flows plus searchable, filterable, paginated catalogue
-- Inventory: stock-in and adjustment RPC actions, low-stock list, and searchable movement history
-- Reports: shared live query model for dashboard, month/date/filter reports, and three-sheet ExcelJS export
-- Search: grouped Product and Sale search for permitted records
+## Project status
 
-The app runs in demo mode when Supabase variables are empty. Demo data is not production data.
+The V1 release is deployed on Vercel and uses a production Supabase project. The production historical-sales replacement was completed and verified on 2026-08-13:
+
+- 57 active catalogue products (`HK-001` to `HK-057`)
+- 295 generated sales from 2026-06-01 through 2026-08-12
+- 573 sale-item lines and 1,164 units
+- HK$4,470.50 total revenue using the production selling prices
+- 171 cash sales and 124 e-payment sales
+- Current inventory was not reduced by the historical replacement
+- Production smoke check: `/login` returned 200 and unauthenticated report export returned 403
+
+The replacement preserved the existing inventory baseline. The database currently reports 10 pre-existing inventory-ledger mismatches; the replacement verified that this number did not increase. Reconcile those items separately before treating inventory history as fully balanced.
+
+## Main features
+
+- Supabase email/password authentication with Admin and Staff roles
+- Role-aware navigation and protected routes
+- Structured products with SKU, Chinese/English names, brand, category, flavour, size, package type, price, cost, stock, reorder level, and barcode
+- Automatic Chinese display-name generation, for example `卡樂B 薯片 25g｜燒烤味`
+- Admin product CRUD, activation/deactivation, safe-delete checks, search, category filters, and stock filters
+- Multi-item sales with server-side price snapshots, retry-safe client request IDs, daily order numbering, and Admin voiding
+- Stock-in, stock adjustment, low-stock views, and movement history
+- Dashboard, filtered reports, global search, and three-sheet ExcelJS export
+- Row-level security, safe Staff views, atomic RPCs, audit movements, and release smoke checks
+
+## Technology
+
+- Next.js 16 App Router and React 19
+- TypeScript, Tailwind CSS, shadcn/ui, React Hook Form, and Zod
+- Supabase Auth, PostgreSQL, RLS, database functions, and migrations
+- Vitest for unit and policy tests
+- pnpm 11 and Node.js 20+
 
 ## Local setup
+
+Prerequisites: Node.js 20 or newer, pnpm, Docker Desktop (for local Supabase), and a Supabase project for live data.
 
 ```powershell
 pnpm install
@@ -22,35 +48,59 @@ Copy-Item .env.example .env.local
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000). If the Supabase variables are empty, the app uses read-only demo data; demo data is never production data.
 
-For real authentication and data, fill `.env.local` with:
+### Environment variables
+
+Put real values in `.env.local` locally and in the matching Vercel environment only. Never commit `.env.local`.
 
 ```text
-NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 BUSINESS_TIMEZONE=Asia/Kuala_Lumpur
 ```
 
-To let an Admin create Staff or Admin accounts from `/users`, also set this server-only value:
+The Admin `/users` account-creation flow additionally needs the server-only key:
 
 ```text
-SUPABASE_SECRET_KEY=...
+SUPABASE_SECRET_KEY=sb_secret_...
 ```
 
-Use the Supabase Project Settings API Secret key. The legacy `SUPABASE_SERVICE_ROLE_KEY` is also supported. Never prefix it with `NEXT_PUBLIC_`, expose it to browser code, or commit it.
+`SUPABASE_SERVICE_ROLE_KEY` remains supported as a legacy fallback. Never prefix a secret key with `NEXT_PUBLIC_`, expose it to browser code, or commit it.
 
-Do not commit `.env.local`.
+## Database and migrations
 
-## Database setup
+The source of truth is the ordered migration set in `supabase/migrations/`. It includes the base schema, RLS and grants, catalogue data, historical-import safeguards, structured product fields, the HK catalogue mapping, safe sales-history replacement, deterministic backup hashes, and inventory safeguards.
 
-Apply the migrations in `supabase/migrations/` to a Supabase project, then run `supabase/seed.sql` in a development database. The first Admin profile must reference an existing Supabase Auth user and is created as a deployment step.
+For a local database:
 
-The database layer contains RLS, Staff-safe views, idempotent sale creation, stock-in, stock adjustment, sale voiding, product Admin RPCs, and audit movements. The local Supabase stack has been reset from all migrations and seed data, and the local integration gate passes. Use a remote/test project for future migration rehearsals before production changes.
+```powershell
+pnpm dlx supabase@latest start
+pnpm dlx supabase@latest db reset
+```
 
-### Historical sales import
+`db reset` is destructive to the local Supabase database and applies migrations plus `supabase/seed.sql`. Do not run the seed file in production.
 
-`pnpm import:historical` defaults to a dry-run. Keep the source TSV local and untracked, review the JSON preview, then apply it only after confirming the totals and mappings:
+For a linked remote project, review the migration list first and then push only after a backup:
+
+```powershell
+pnpm dlx supabase@latest migration list
+pnpm dlx supabase@latest db push
+```
+
+Use a separate remote/test project to rehearse migrations before production. Do not edit an already-applied remote migration; add a new migration instead.
+
+## Structured product catalogue
+
+Products keep their existing IDs and SKU values. The structured fields are:
+
+`sku`, `name_zh`, `name_en`, `brand`, `category`, `flavour`, `size`, `package_type`, `price`, `cost`, `stock_quantity`, `reorder_level`, and `barcode`.
+
+The application generates the display name from the fields rather than duplicating a long name in every form or POS card. Search supports SKU, Chinese/English name, brand, category, flavour, and barcode. The active HK catalogue is mapped in `202608120002_catalogue_mapping.sql`.
+
+## Historical sales import
+
+The historical importer is dry-run by default. Keep the source TSV local and untracked, review the JSON preview, and verify totals and product mappings before applying:
 
 ```powershell
 pnpm import:historical -- --input .\historical-sales-2025.tsv
@@ -58,24 +108,57 @@ $env:SUPABASE_SECRET_KEY = "sb_secret_..."
 pnpm import:historical -- --input .\historical-sales-2025.tsv --apply
 ```
 
-The importer uses deterministic IDs, groups rows by date and payment method, preserves unmatched products as inactive historical products, and does not deduct current stock for historical sales. `SUPABASE_SERVICE_ROLE_KEY` remains supported as a legacy fallback. Never paste keys or commit the source TSV.
+The importer uses deterministic IDs, groups rows by date and payment method, preserves unmatched products as inactive historical products, and does not deduct current inventory for historical sales. It supports `SUPABASE_SERVICE_ROLE_KEY` as a legacy fallback.
 
-### Local Supabase verification
+## Replacing a sales history window
 
-The repository includes `supabase/config.toml`, generated database types, and a repeatable integration check. With Docker Desktop running:
+`pnpm replace:sales-history` is a destructive production tool. It is intentionally fixed to 2026-06-01 through 2026-08-12 and requires a target-specific confirmation token, service-role access, a frozen backup, and an enabled maintenance window.
+
+Always start with a dry-run:
 
 ```powershell
-pnpm dlx supabase start
-$status = pnpm dlx supabase status -o json | ConvertFrom-Json
+pnpm replace:sales-history
+pnpm replace:sales-history --status
+```
+
+The production cutover sequence is:
+
+1. Apply and verify migrations in a test project, then create a pre-migration production backup.
+2. Enable the target-bound maintenance command shown by `--status`.
+3. While maintenance is enabled, create `roles.sql`, `schema.sql`, and `data.sql` with the Supabase CLI.
+4. Create a manifest containing the project ref, maintenance timestamp, exact sales/items/movement/counter counts, canonical hashes, and SHA256 values for all three artifacts.
+5. Run the apply command with `--confirm DELETE-ALL-SALES:<project-ref> --backup-manifest <path>`.
+6. Review the returned counts, payload hash, counter check, and ledger baseline.
+7. Disable maintenance using the target-bound command from `--status`.
+
+The replacement is atomic. It does not deduct current stock, blocks sales/catalogue/inventory writes during the cutover, preserves the inventory ledger total, and verifies persisted rows after insertion. If the apply command fails, leave maintenance enabled, run `--status`, investigate, and only then use the target-bound maintenance-off command.
+
+Keep the frozen backup permanently. The replacement removes old sale movements from the live ledger and retains their net effect as a reconciliation movement; the original row-level history is recoverable from the verified backup.
+
+## Local Supabase verification
+
+With Docker Desktop running, start the local stack and load its generated test keys:
+
+```powershell
+pnpm dlx supabase@latest start
+$status = pnpm dlx supabase@latest status -o json | ConvertFrom-Json
 $env:SUPABASE_TEST_URL = $status.API_URL
 $env:SUPABASE_TEST_ANON_KEY = $status.ANON_KEY
 $env:SUPABASE_TEST_SERVICE_ROLE_KEY = $status.SERVICE_ROLE_KEY
 pnpm verify:local
 ```
 
-The check creates temporary local Auth users and records, verifies RLS, concurrency, failed-transaction rollback, retry idempotency, oversell protection, and void safety, then removes its test data. Never place the service-role key in `.env.local` or commit it.
+`verify:local` creates temporary local users and fixtures, checks RLS, atomicity, retries, concurrency, oversell protection, void safety, inventory import idempotency, and Staff restrictions, then cleans up its fixtures. Never point it at a production URL.
 
-## Checks
+The sales-replacement integration check resets only the local Supabase database before and after its run:
+
+```powershell
+pnpm verify:sales-replacement
+```
+
+It verifies malformed-payload rollback, maintenance locking, direct-write blocking, deterministic hashes, exact counts, and ledger reconciliation.
+
+## Checks and release smoke test
 
 ```powershell
 pnpm typecheck
@@ -84,37 +167,34 @@ pnpm test
 pnpm build
 ```
 
-The report endpoint smoke test can be run after `pnpm build` and `pnpm start`:
-
-```text
-GET /api/reports/export?from=2026-08-06&to=2026-08-06
-```
-
-The minimal release smoke check verifies the public login page, the unauthenticated export boundary, and required security headers:
+After `pnpm build` and `pnpm start`, run the public HTTP smoke check:
 
 ```powershell
-pnpm build
-pnpm start
 pnpm smoke:app
 ```
 
-Set `SMOKE_BASE_URL` when checking a Preview deployment.
+Set `SMOKE_BASE_URL` when checking a Vercel Preview or production deployment. The check covers the public login page, unauthenticated report-export authorization, and required security headers.
 
-The Reports page also accepts `month`, `paymentMethod`, `status`, `product`, `category`, and `staff` query parameters. Demo mode is intentionally read-only and uses sample data.
+The report page supports `month`, `from`, `to`, `paymentMethod`, `status`, `product`, `category`, and `staff` filters. Demo mode is intentionally read-only.
 
-## Operational follow-ups
+## Deployment, backup, and recovery
 
-- Keep a Supabase backup/export record before future schema changes or bulk imports.
-- Rehearse future migrations in a separate remote/test project before applying them to production.
-- `pnpm audit --prod` currently reports one documented moderate transitive `uuid` advisory through `exceljs`; no critical/high issue is open.
+1. Push the reviewed commit to GitHub and wait for the Vercel deployment to finish.
+2. Set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `BUSINESS_TIMEZONE` in the required Vercel environments.
+3. Set `SUPABASE_SECRET_KEY` only if the server-side Admin account-creation flow is needed.
+4. Apply Supabase migrations after creating and verifying a backup. Never run `supabase/seed.sql` in production.
+5. Run `SMOKE_BASE_URL` against the deployment and verify an Admin and a Staff session separately.
+6. For recovery, restore the verified backup into a separate Supabase project first, apply migrations there, rotate exposed keys if necessary, update Vercel variables, and run the smoke check before switching traffic.
 
-## Deployment, backup, and recovery runbook
+## Documentation
 
-1. Apply every file in `supabase/migrations/` to the target Supabase project. Do not run `supabase/seed.sql` in production.
-2. In Vercel, set `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and `BUSINESS_TIMEZONE` for the deployment environments. Set `SUPABASE_SECRET_KEY` only when the `/users` Admin account-creation flow is needed; keep it server-only. The legacy `SUPABASE_SERVICE_ROLE_KEY` remains supported.
-3. Before a schema change or bulk data operation, create a Supabase backup/export using the controls available for the project plan and record the migration commit SHA.
-4. For recovery, restore into a separate Supabase project first, apply the migrations, rotate exposed keys if necessary, update Vercel variables, and run `pnpm smoke:app` against the deployment before switching traffic.
+- [Traditional Chinese README](./README_zh.md)
+- [Development plan](./DEVELOPMENT_PLAN.md)
+- [Project specification](./project%20prompt.md)
+- [Environment template](./.env.example)
 
-## Development plan
+## Known follow-up work
 
-See [DEVELOPMENT_PLAN.md](./DEVELOPMENT_PLAN.md) for stage gates, remaining work, and the V1 acceptance criteria. See [project prompt.md](./project%20prompt.md) for the product specification.
+- Reconcile the 10 pre-existing inventory-ledger mismatches in a separate reviewed operation.
+- Keep production backup manifests and restore rehearsals as release evidence.
+- `pnpm audit --prod` currently reports one documented moderate transitive `uuid` advisory through ExcelJS; no critical or high advisory is open.
