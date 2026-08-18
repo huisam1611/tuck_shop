@@ -43,7 +43,7 @@ The application must be simple enough for non-technical staff, responsive on des
 
 - The system serves a single tuck shop.
 - Currency is Hong Kong Dollar (`HKD`), displayed as `HK$0.00`.
-- Business timezone defaults to `Asia/Kuala_Lumpur` and is configurable through an environment variable.
+- Business timezone defaults to `Asia/Hong_Kong` and is configurable through an environment variable.
 - Product quantities are whole units only.
 - Negative inventory is not allowed.
 - Low stock means `current_stock <= minimum_stock`.

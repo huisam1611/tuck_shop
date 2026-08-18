@@ -3,7 +3,7 @@ import { z } from "zod";
 const publicEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
-  BUSINESS_TIMEZONE: z.string().default("Asia/Kuala_Lumpur"),
+  BUSINESS_TIMEZONE: z.string().default("Asia/Hong_Kong"),
 });
 
 export function hasSupabaseEnv() {

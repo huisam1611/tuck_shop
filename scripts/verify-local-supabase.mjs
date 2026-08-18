@@ -366,6 +366,20 @@ try {
   });
   assert(Boolean(staffAdminError), "Staff could execute an Admin inventory operation.");
 
+  const { error: deactivateProductError } = await service
+    .from("products")
+    .update({ status: "inactive" })
+    .eq("id", temporaryProductId);
+  if (deactivateProductError) throw new Error(`Inactive product setup failed: ${deactivateProductError.message}`);
+  const { error: inactiveStockInError } = await admin.rpc("stock_in", {
+    p_product_id: temporaryProductId,
+    p_receipt_date: "2099-01-05",
+    p_quantity: 1,
+    p_unit_cost: 1,
+    p_supplier_name: "Should fail",
+  });
+  assert(inactiveStockInError?.message.includes("Inactive products cannot receive stock"), "Admin could receive stock for an inactive product.");
+
   counterSaleId = randomUUID();
   const { error: counterSaleError } = await service.from("sales").insert({
     id: counterSaleId,
@@ -399,7 +413,7 @@ try {
   if (counterAfterError) throw new Error(`Counter check failed: ${counterAfterError.message}`);
   assert(counterAfter.next_order_number >= 150, "Counter reconciliation did not preserve the larger value.");
 
-  console.log("Local Supabase integration checks passed: RLS, atomicity, retry idempotency, oversell protection, and void safety.");
+  console.log("Local Supabase integration checks passed: RLS, atomicity, retry idempotency, oversell protection, void safety, and inactive-product stock-in protection.");
 } finally {
   await removeRows("stock_movements", "reference_id", createdSaleIds);
   await removeRows("sale_items", "sale_id", createdSaleIds);

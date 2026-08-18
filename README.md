@@ -57,7 +57,7 @@ Put real values in `.env.local` locally and in the matching Vercel environment o
 ```text
 NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
-BUSINESS_TIMEZONE=Asia/Kuala_Lumpur
+BUSINESS_TIMEZONE=Asia/Hong_Kong
 ```
 
 The Admin `/users` account-creation flow additionally needs the server-only key:
@@ -195,6 +195,6 @@ The report page supports `month`, `from`, `to`, `paymentMethod`, `status`, `prod
 
 ## Known follow-up work
 
-- Reconcile the 10 pre-existing inventory-ledger mismatches in a separate reviewed operation.
+- Reconcile the 10 pre-existing inventory-ledger mismatches only as a separate reviewed production operation after creating and verifying a backup; this checkout does not modify production data.
 - Keep production backup manifests and restore rehearsals as release evidence.
-- `pnpm audit --prod` currently reports one documented moderate transitive `uuid` advisory through ExcelJS; no critical or high advisory is open.
+- `pnpm audit --prod` reports no known production vulnerabilities after pinning `nanoid` to `3.3.18` and the ExcelJS `uuid` dependency to `11.1.1`; the ExcelJS workbook smoke check passes with that override.

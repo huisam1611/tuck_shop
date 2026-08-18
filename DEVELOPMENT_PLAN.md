@@ -131,26 +131,26 @@ Complete locally: `supabase db reset` applies all three migrations and the seed,
 
 ### 3B. Product Management — 1 day
 
-- [ ] P3.4 Build paginated product list with search, category/status filters, and low-stock badges. (Search, status filtering, pagination, and low-stock badges are implemented.)
-- [ ] P3.5 Build Admin create/edit forms with shared Zod validation. (Create and edit are implemented.)
-- [ ] P3.6 Implement activate/deactivate and safe-delete confirmation flows. (Status changes and safe-delete confirmation are implemented.)
+- [x] P3.4 Build paginated product list with search, category/status filters, and low-stock badges. (Search, status filtering, pagination, and low-stock badges are implemented.)
+- [x] P3.5 Build Admin create/edit forms with shared Zod validation. (Create and edit are implemented.)
+- [x] P3.6 Implement activate/deactivate and safe-delete confirmation flows. (Status changes and safe-delete confirmation are implemented.)
 
 **Check:** Products with history cannot be deleted, and inactive products cannot be sold.
 
 ### 3C. Sales Recording — 1.5–2 days
 
-- [ ] P3.7 Build a touch-friendly order form with product selection, quantity controls, live subtotals, payment selection, and order total. (Initial composer is implemented.)
+- [x] P3.7 Build a touch-friendly order form with product selection, quantity controls, live subtotals, payment selection, and order total. (Initial composer is implemented.)
 - [ ] P3.8 Save through `create_sale`; prevent repeat submissions and show the generated order reference. (Stable client request ID and repeat-safe server action are implemented; live RPC verification is pending.)
-- [ ] P3.9 Build recent-sales and sale-detail screens. (Sales history with line items is implemented.)
-- [ ] P3.10 Build the Admin void dialog with mandatory reason. (Admin void form and protected RPC are implemented.)
+- [x] P3.9 Build recent-sales and sale-detail screens. (Sales history with line items is implemented.)
+- [x] P3.10 Build the Admin void dialog with mandatory reason. (Admin void form and protected RPC are implemented.)
 
 **Check:** A multi-item sale deducts each stock quantity exactly once; retrying after a timeout cannot create an accidental duplicate.
 
 ### 3D. Inventory — 1–2 days
 
-- [ ] P3.11 Build inventory list and low/out-of-stock views. (Initial responsive read-only list is implemented.)
+- [x] P3.11 Build inventory list and low/out-of-stock views. (Initial responsive read-only list is implemented.)
 - [ ] P3.12 Build stock-in and stock-adjustment forms. (Initial actions/forms are implemented; live RPC verification is pending.)
-- [ ] P3.13 Build paginated, filterable, read-only stock movement history. (Read-only Admin history table, search, type filtering, and pagination are implemented.)
+- [x] P3.13 Build paginated, filterable, read-only stock movement history. (Read-only Admin history table, search, type filtering, and pagination are implemented.)
 
 **Check:** Every stock change has matching before/after values and an audit reference.
 
@@ -164,13 +164,13 @@ Complete locally: `supabase db reset` applies all three migrations and the seed,
 
 ### Tasks
 
-- [ ] P4.1 Build permission-aware Admin and Staff dashboards. (Role-aware live summary cards, revenue trend, low-stock list, and best-selling table are implemented.)
+- [x] P4.1 Build permission-aware Admin and Staff dashboards. (Role-aware live summary cards, revenue trend, low-stock list, and best-selling table are implemented.)
 - [ ] P4.2 Add monthly revenue trend and top-10 product charts with accessible table alternatives. (Revenue trend and accessible best-selling table are implemented; a dedicated product chart remains.)
 - [ ] P4.3 Build daily sales, monthly sales/profit, inventory, best-selling, and low-stock reports. (Daily detail, monthly profit, and inventory export data are implemented; best-selling/low-stock report cards remain.)
-- [ ] P4.4 Add date range, month/year, product, category, payment, Staff, and status filters using URL query parameters. (Month, date range, product, category, payment, Staff, and status filters are implemented.)
+- [x] P4.4 Add date range, month/year, product, category, payment, Staff, and status filters using URL query parameters. (Month, date range, product, category, payment, Staff, and status filters are implemented.)
 - [ ] P4.5 Build global search grouped into Product and Sale results. (Grouped search page is implemented; debounce remains.)
-- [ ] P4.6 Generate the three-worksheet Excel workbook using the active report filters. (Live shared report data and all current URL filters are implemented.)
-  - [ ] P4.7 Apply required Excel styles, number/date formats, filters, frozen headers, tables, summaries, and safe column widths. (Implemented and smoke-tested with filtered data.)
+- [x] P4.6 Generate the three-worksheet Excel workbook using the active report filters. (Live shared report data and all current URL filters are implemented.)
+  - [x] P4.7 Apply required Excel styles, number/date formats, filters, frozen headers, tables, summaries, and safe column widths. (Implemented and smoke-tested with filtered data.)
 
 ### Required Calculation Tests
 
@@ -199,7 +199,7 @@ Use a fixed dataset to compare on-screen values, direct SQL results, and workboo
 - [x] P5.3 Add end-to-end tests for login, product creation, sale, stock-in, adjustment, void, report, and export workflows. (Production Admin session verified on 2026-08-09 with TEST-E2E-01 / TEST E2E Snack: stock-in +2, sale 1, adjustment in +1, void restore +1, immutable history, void-excluded report totals, and `.xlsx` download. A dedicated production Staff session was also verified: Dashboard, Sales, Inventory, Products, and Search were available; Admin-only Reports, Users, and Inventory history returned 404; product and inventory mutation controls were absent. The user confirmed Staff account creation and login.)
 - [x] P5.4 Verify keyboard access, focus states, labels, contrast, loading states, empty states, and error recovery. (Latest production deployment confirms visible mobile sign-out, no remaining `text-slate-400` metadata classes, focus rings, native invalid-field recovery, status/empty states, and no unnamed visible controls or missing image alt text across nine Admin routes.)
 - [x] P5.5 Test common desktop widths and iPhone widths at 375 px and 430 px. (Production Dashboard, Sales, Inventory, Products, and Reports were checked at 375px, 430px, and 1280px with no document-level horizontal overflow.)
-- [x] P5.6 Review security headers, secrets, service-role usage, server authorization, and dependency audit results. (Headers, server-only guard, build secret scan, authenticated/unauthenticated export boundaries, and production smoke pass. `pnpm audit --prod` reports one documented moderate transitive `uuid` advisory through ExcelJS; no critical/high issue was found.)
+- [x] P5.6 Review security headers, secrets, service-role usage, server authorization, and dependency audit results. (Headers, server-only guard, build secret scan, authenticated/unauthenticated export boundaries, and production smoke pass. `pnpm audit --prod` reports no known production vulnerabilities after the exact `nanoid` and ExcelJS `uuid` overrides; the ExcelJS workbook smoke check passes.)
 - [x] P5.7 Write README instructions for setup, migrations, seed, tests, first Admin, deployment, backup, and recovery. (Runbook and release smoke command are documented; project-specific backup-plan selection remains an operator task.)
 - [x] P5.8 Configure Supabase production migrations and Vercel environment variables, then perform a deployment smoke test. (Production `/login` returns 200, unauthenticated export returns 403, and required security headers are present.)
 
@@ -207,7 +207,7 @@ Use a fixed dataset to compare on-screen values, direct SQL results, and workboo
 
 - [x] All ten V1 acceptance criteria in `project prompt.md` pass. (Core Admin, Staff, data, concurrency, RLS, report, export, responsive, and fresh-environment checks pass.)
 - [x] Type-check, lint, tests, and production build pass.
-- [x] No critical/high security issue remains open. (One moderate transitive `uuid` advisory remains documented.)
+- [x] No critical/high security issue remains open. (`pnpm audit --prod` reports no known production vulnerabilities.)
 - [x] A fresh environment can be set up using only the README. (Local Supabase was rebuilt from migrations and seed, then `pnpm verify:local` passed RLS, atomicity, retry idempotency, oversell protection, and void safety.)
 - [x] Production smoke test completes without using seed data. (Production Admin TEST audit records were used for browser verification.)
 
@@ -252,7 +252,7 @@ These decisions are fixed for V1 unless the product owner changes them before im
 | Decision | V1 choice |
 |---|---|
 | Currency | HKD (`HK$`) |
-| Business timezone | `Asia/Kuala_Lumpur`, configurable by environment |
+| Business timezone | `Asia/Hong_Kong`, configurable by environment |
 | Inventory costing | Latest unit cost |
 | Negative stock | Prohibited |
 | Sale correction | Void entire order and re-enter |
@@ -263,3 +263,7 @@ These decisions are fixed for V1 unless the product owner changes them before im
 ## Next Development Action
 
 Next: V1 acceptance and the historical data migration are complete. Keep `pnpm verify:local`, `pnpm smoke:app`, the production TEST audit records, and the import reconciliation as release evidence; optional post-V1 polish remains separately tracked.
+
+### Remaining production operation
+
+- [ ] Reconcile the 10 pre-existing inventory-ledger mismatches only after creating and verifying a production backup, then execute the adjustment as a separate reviewed operation. Do not run it from this checkout, use secrets here, or deploy it as part of V1 closeout.

@@ -57,7 +57,7 @@ pnpm dev
 ```text
 NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
-BUSINESS_TIMEZONE=Asia/Kuala_Lumpur
+BUSINESS_TIMEZONE=Asia/Hong_Kong
 ```
 
 `/users` 的 Admin 建立帳戶流程另外需要只可在伺服器使用的 key：
@@ -195,6 +195,6 @@ Reports 頁支援 `month`、`from`、`to`、`paymentMethod`、`status`、`produc
 
 ## 已知後續工作
 
-- 在獨立、已 review 的操作中處理 10 個既有 inventory-ledger mismatch。
+- 10 個既有 inventory-ledger mismatch 必須先建立並驗證 production backup，再由獨立、已 review 的 production 操作執行 adjustment；本 checkout 不會直接修改 production 資料。
 - 把 production backup manifests 和 restore rehearsal 永久保留為 release evidence。
-- `pnpm audit --prod` 目前報告一個由 ExcelJS 引入的 documented moderate transitive `uuid` advisory；沒有 critical 或 high advisory。
+- `pnpm audit --prod` 在將 `nanoid` 固定為 `3.3.18`、ExcelJS 的 `uuid` 固定為 `11.1.1` 後，實際結果為沒有已知 production vulnerabilities；ExcelJS workbook smoke check 亦已通過。

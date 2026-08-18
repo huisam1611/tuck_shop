@@ -9,7 +9,7 @@ export function normalizePaymentMethod(value: unknown): PaymentMethod {
   return value === "e_payment" ? "e_payment" : "cash";
 }
 
-export function getBusinessDate(now = new Date(), timeZone = process.env.BUSINESS_TIMEZONE ?? "Asia/Kuala_Lumpur") {
+export function getBusinessDate(now = new Date(), timeZone = process.env.BUSINESS_TIMEZONE ?? "Asia/Hong_Kong") {
   const formatter = new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" });
   const parts = Object.fromEntries(formatter.formatToParts(now).map((part) => [part.type, part.value]));
   return `${parts.year}-${parts.month}-${parts.day}`;

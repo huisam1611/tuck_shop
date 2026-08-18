@@ -11,6 +11,7 @@ export const metadata = { title: "Sales history" };
 
 export default async function SalesHistoryPage() {
   const [profile, sales] = await Promise.all([getCurrentProfile(), listSales()]);
+  const businessTimezone = process.env.BUSINESS_TIMEZONE ?? "Asia/Hong_Kong";
   const items = await listSaleItems(sales.map((sale) => sale.id));
   const itemsBySale = new Map<string, typeof items>();
   for (const item of items) itemsBySale.set(item.sale_id, [...(itemsBySale.get(item.sale_id) ?? []), item]);
@@ -33,7 +34,7 @@ export default async function SalesHistoryPage() {
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div>
                     <div className="flex flex-wrap items-center gap-3"><h2 className="text-lg font-semibold text-slate-950">{sale.sale_date}-{String(sale.daily_order_number).padStart(3, "0")}</h2><span className={`rounded-full px-3 py-1 text-xs font-semibold ${sale.status === "completed" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>{sale.status === "completed" ? "Completed" : "Voided"}</span></div>
-                    <p className="mt-2 text-sm text-slate-500">{sale.payment_method === "cash" ? "Cash" : "E-payment"} · {sale.staff_name ?? "Current staff"} · {new Date(sale.created_at).toLocaleString("en-MY")}</p>
+                    <p className="mt-2 text-sm text-slate-500">{sale.payment_method === "cash" ? "Cash" : "E-payment"} · {sale.staff_name ?? "Current staff"} · {new Date(sale.created_at).toLocaleString("en-HK", { timeZone: businessTimezone })}</p>
                   </div>
                   <p className="text-2xl font-semibold tracking-tight text-slate-950">HK${sale.grand_total.toFixed(2)}</p>
                 </div>

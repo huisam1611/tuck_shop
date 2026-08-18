@@ -7,7 +7,7 @@ export default async function DashboardPage() {
   const profile = await getCurrentProfile();
   const summary = await getDashboardSummary(profile);
   const isStaff = profile?.role === "staff";
-  const todayLabel = new Intl.DateTimeFormat("en-MY", { dateStyle: "full", timeZone: process.env.BUSINESS_TIMEZONE ?? "Asia/Kuala_Lumpur" }).format(new Date());
+  const todayLabel = new Intl.DateTimeFormat("en-HK", { dateStyle: "full", timeZone: process.env.BUSINESS_TIMEZONE ?? "Asia/Hong_Kong" }).format(new Date());
   const chartMax = Math.max(...summary.dailyRevenue, 1);
 
   return (
