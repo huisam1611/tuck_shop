@@ -16,7 +16,7 @@ The V1 release is deployed on Vercel and uses a production Supabase project. The
 - Current inventory was not reduced by the historical replacement
 - Production smoke check: `/login` returned 200 and unauthenticated report export returned 403
 
-The replacement preserved the existing inventory baseline. The database currently reports 10 pre-existing inventory-ledger mismatches; the replacement verified that this number did not increase. Reconcile those items separately before treating inventory history as fully balanced.
+The replacement preserved the existing inventory baseline. Migration `202608180001` recorded the ten approved legacy opening balances without changing current stock; the production inventory-ledger mismatch count is now zero.
 
 ## Main features
 
@@ -195,6 +195,5 @@ The report page supports `month`, `from`, `to`, `paymentMethod`, `status`, `prod
 
 ## Known follow-up work
 
-- Reconcile the 10 pre-existing inventory-ledger mismatches only as a separate reviewed production operation after creating and verifying a backup; this checkout does not modify production data.
 - Keep production backup manifests and restore rehearsals as release evidence.
 - `pnpm audit --prod` reports no known production vulnerabilities after pinning `nanoid` to `3.3.18` and the ExcelJS `uuid` dependency to `11.1.1`; the ExcelJS workbook smoke check passes with that override.

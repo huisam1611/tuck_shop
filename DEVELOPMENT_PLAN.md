@@ -266,4 +266,4 @@ Next: V1 acceptance and the historical data migration are complete. Keep `pnpm v
 
 ### Remaining production operation
 
-- [ ] Reconcile the 10 pre-existing inventory-ledger mismatches only after creating and verifying a production backup, then execute the adjustment as a separate reviewed operation. Do not run it from this checkout, use secrets here, or deploy it as part of V1 closeout.
+- [x] Reconcile the 10 pre-existing inventory-ledger mismatches after creating and verifying a production backup. Migration `202608180001` added 10 audited legacy opening-balance movements totalling 297 without changing current stock; production mismatch count was verified as zero on 2026-08-18.

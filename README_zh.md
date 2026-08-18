@@ -16,7 +16,7 @@ V1 已部署到 Vercel，並連接 production Supabase。production 歷史銷售
 - 歷史替換沒有扣減目前庫存
 - production smoke check 通過：`/login` 回傳 200，未登入的報表匯出回傳 403
 
-替換流程保留了原有庫存基準。資料庫目前有 10 個在替換前已存在的庫存 ledger 不一致項目；替換前後數字相同，沒有新增問題。請另行處理這些項目，完成後才把庫存歷史視為完全平衡。
+替換流程保留了原有庫存基準。Migration `202608180001` 已在不改變目前庫存的情況下記錄 10 個已核准的舊 opening balances；Production inventory-ledger mismatch 現為 0。
 
 ## 主要功能
 
@@ -195,6 +195,5 @@ Reports 頁支援 `month`、`from`、`to`、`paymentMethod`、`status`、`produc
 
 ## 已知後續工作
 
-- 10 個既有 inventory-ledger mismatch 必須先建立並驗證 production backup，再由獨立、已 review 的 production 操作執行 adjustment；本 checkout 不會直接修改 production 資料。
 - 把 production backup manifests 和 restore rehearsal 永久保留為 release evidence。
 - `pnpm audit --prod` 在將 `nanoid` 固定為 `3.3.18`、ExcelJS 的 `uuid` 固定為 `11.1.1` 後，實際結果為沒有已知 production vulnerabilities；ExcelJS workbook smoke check 亦已通過。
