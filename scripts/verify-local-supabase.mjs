@@ -72,6 +72,10 @@ try {
     .single();
   if (seededProductError || !seededProduct) throw new Error(`Seed check failed: ${seededProductError?.message ?? "P001 missing"}`);
 
+  const { data: ledgerPreview, error: ledgerPreviewError } = await service.rpc("preview_sales_history_replacement");
+  if (ledgerPreviewError) throw new Error(`Opening-balance ledger preview failed: ${ledgerPreviewError.message}`);
+  assert(rpcRow(ledgerPreview)?.ledgerMismatchCount === 0, "Opening-balance reconciliation left ledger mismatches.");
+
   const { data: staffProduct, error: staffProductError } = await staff
     .from("staff_products")
     .select("*")
