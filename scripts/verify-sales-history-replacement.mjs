@@ -15,8 +15,13 @@ if (!url || !anonKey || !serviceKey || !['127.0.0.1', 'localhost'].includes(new 
 }
 
 function resetLocalDatabase() {
-  if (!process.env.npm_execpath) throw new Error('Run this integration check through pnpm verify:sales-replacement');
-  const reset = spawnSync(process.execPath, [process.env.npm_execpath, 'dlx', 'supabase@latest', 'db', 'reset'], {
+  const cliPath = process.env.SUPABASE_CLI_PATH;
+  if (!cliPath && !process.env.npm_execpath) throw new Error('Run this integration check through pnpm verify:sales-replacement');
+  const command = cliPath || process.execPath;
+  const args = cliPath
+    ? ['db', 'reset', '--local']
+    : [process.env.npm_execpath, 'dlx', 'supabase@latest', 'db', 'reset'];
+  const reset = spawnSync(command, args, {
     cwd: process.cwd(),
     encoding: 'utf8',
   });

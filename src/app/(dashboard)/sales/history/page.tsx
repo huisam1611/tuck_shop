@@ -10,9 +10,9 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Sales history" };
 
 export default async function SalesHistoryPage() {
-  const [profile, sales] = await Promise.all([getCurrentProfile(), listSales()]);
+  const [profile, sales] = await Promise.all([getCurrentProfile(), listSales({ all: true })]);
   const businessTimezone = process.env.BUSINESS_TIMEZONE ?? "Asia/Hong_Kong";
-  const items = await listSaleItems(sales.map((sale) => sale.id));
+  const items = await listSaleItems(sales.map((sale) => sale.id), { all: true });
   const itemsBySale = new Map<string, typeof items>();
   for (const item of items) itemsBySale.set(item.sale_id, [...(itemsBySale.get(item.sale_id) ?? []), item]);
   const canVoid = profile?.role === "admin" && hasSupabaseEnv();

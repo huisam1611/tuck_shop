@@ -70,7 +70,7 @@ SUPABASE_SECRET_KEY=sb_secret_...
 
 ## 資料庫及 migrations
 
-資料庫的真實來源是 `supabase/migrations/` 內按順序排列的 migration。內容包括基礎 schema、RLS 及 grants、產品目錄資料、歷史匯入保護、結構化產品欄位、HK 產品對照、安全銷售歷史替換、deterministic backup hashes，以及庫存保護。
+資料庫的真實來源是 `supabase/migrations/` 內按順序排列的 migration。內容包括基礎 schema、RLS 及 grants、產品目錄資料、歷史匯入保護、結構化產品欄位、HK 產品對照、安全銷售歷史替換、deterministic backup hashes、庫存保護，以及 `202608180002` 的 payload-bound retry／權限 hardening。
 
 本機資料庫：
 
@@ -148,7 +148,7 @@ $env:SUPABASE_TEST_SERVICE_ROLE_KEY = $status.SERVICE_ROLE_KEY
 pnpm verify:local
 ```
 
-`verify:local` 會建立暫時本機 users 和 fixtures，測試 RLS、atomicity、retry、concurrency、oversell protection、void safety、庫存匯入 idempotency 及 Staff restrictions，然後清理 fixtures。絕對不要把 production URL 傳給它。
+`verify:local` 會建立暫時本機 users 和 fixtures，測試 RLS 及 RPC 權限、actor-less ledger 約束、atomicity、payload-bound retry、concurrency、oversell protection、void safety、庫存匯入 idempotency 及 Staff restrictions，然後清理 fixtures。絕對不要把 production URL 傳給它。
 
 Sales replacement integration check 只會在執行前後 reset 本機 Supabase：
 
@@ -156,7 +156,7 @@ Sales replacement integration check 只會在執行前後 reset 本機 Supabase�
 pnpm verify:sales-replacement
 ```
 
-它會驗證 malformed payload rollback、maintenance locking、direct-write blocking、deterministic hashes、精確筆數及 ledger reconciliation。
+它會驗證 malformed payload rollback、maintenance locking、direct-write blocking、deterministic hashes、精確筆數及 ledger reconciliation。如果 `pnpm dlx` 無法下載 CLI，可先把 `SUPABASE_CLI_PATH` 設為現有本機 `supabase` executable 的路徑，再執行指令。
 
 ## Checks 及 release smoke test
 

@@ -12,6 +12,7 @@ if (!url || !anonKey || !serviceRoleKey) {
 
 const authOptions = { auth: { autoRefreshToken: false, persistSession: false } };
 const service = createClient(url, serviceRoleKey, authOptions);
+const anonymous = createClient(url, anonKey, authOptions);
 const suffix = `${Date.now()}-${randomUUID().slice(0, 8)}`;
 const adminCredentials = { email: `local-admin-${suffix}@example.test`, password: `Admin-${randomUUID()}!` };
 const alternateAdminCredentials = { email: `local-admin-2-${suffix}@example.test`, password: `Admin-${randomUUID()}!` };
@@ -71,6 +72,27 @@ try {
     .eq("product_code", "P001")
     .single();
   if (seededProductError || !seededProduct) throw new Error(`Seed check failed: ${seededProductError?.message ?? "P001 missing"}`);
+
+  const { error: anonymousSaleError } = await anonymous.rpc("create_sale", {
+    p_client_request_id: randomUUID(),
+    p_sale_date: "2099-01-01",
+    p_payment_method: "cash",
+    p_items: [{ product_id: seededProduct.id, quantity: 1 }],
+  });
+  assert(anonymousSaleError?.message.toLowerCase().includes("permission denied"), "Anonymous users can execute create_sale.");
+
+  const { error: invalidActorlessMovementError } = await service.from("stock_movements").insert({
+    product_id: seededProduct.id,
+    movement_type: "adjustment_in",
+    quantity_change: 1,
+    stock_before: seededProduct.current_stock,
+    stock_after: seededProduct.current_stock + 1,
+    reference_type: "opening_balance_reconciliation",
+    reference_id: randomUUID(),
+    reason: "Unapproved actor-less movement",
+    created_by: null,
+  });
+  assert(Boolean(invalidActorlessMovementError), "The database accepted an unapproved actor-less stock movement.");
 
   const { data: ledgerPreview, error: ledgerPreviewError } = await service.rpc("preview_sales_history_replacement");
   if (ledgerPreviewError) throw new Error(`Opening-balance ledger preview failed: ${ledgerPreviewError.message}`);
@@ -303,6 +325,14 @@ try {
   const retrySale = rpcRow(retrySaleData);
   assert(retrySale.sale_id === firstSale.sale_id, "Retry created a different sale.");
 
+  const { error: mismatchedRetryError } = await staff.rpc("create_sale", {
+    p_client_request_id: retryRequestId,
+    p_sale_date: "2099-01-03",
+    p_payment_method: "e_payment",
+    p_items: [{ product_id: seededProduct.id, quantity: 1 }],
+  });
+  assert(mismatchedRetryError?.message.includes("different sale data"), "A reused request ID accepted different sale data.");
+
   const { data: staffItems, error: staffItemsError } = await staff
     .from("staff_sale_items")
     .select("*")
@@ -417,7 +447,7 @@ try {
   if (counterAfterError) throw new Error(`Counter check failed: ${counterAfterError.message}`);
   assert(counterAfter.next_order_number >= 150, "Counter reconciliation did not preserve the larger value.");
 
-  console.log("Local Supabase integration checks passed: RLS, atomicity, retry idempotency, oversell protection, void safety, and inactive-product stock-in protection.");
+  console.log("Local Supabase integration checks passed: RLS and RPC privileges, actor-less ledger constraints, atomicity, payload-bound retry idempotency, oversell protection, void safety, and inactive-product stock-in protection.");
 } finally {
   await removeRows("stock_movements", "reference_id", createdSaleIds);
   await removeRows("sale_items", "sale_id", createdSaleIds);

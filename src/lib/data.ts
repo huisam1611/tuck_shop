@@ -167,19 +167,26 @@ function toSaleSummary(row: Record<string, unknown>, staffName?: string): SaleSu
   };
 }
 
-export async function listSales(): Promise<SaleSummary[]> {
+export async function listSales(options: { all?: boolean } = {}): Promise<SaleSummary[]> {
   if (!hasSupabaseEnv()) return demoSales;
 
   const supabase = await createClient();
   const profile = await getCurrentProfile();
   if (!profile) return [];
-  const result = profile.role === "admin"
-    ? await supabase.from("sales").select("id,sale_date,daily_order_number,payment_method,grand_total,status,created_at,staff_id,voided_at,void_reason").order("sale_date", { ascending: false }).order("daily_order_number", { ascending: false }).limit(200)
-    : await supabase.from("staff_sales").select("id,sale_date,daily_order_number,payment_method,grand_total,status,created_at").order("sale_date", { ascending: false }).order("daily_order_number", { ascending: false }).limit(200);
-  const { data, error } = result;
-  if (error) throw new Error("Unable to load sales history.");
-
-  const rows = (data ?? []) as unknown as Record<string, unknown>[];
+  const rows: Record<string, unknown>[] = [];
+  const pageSize = options.all ? 500 : 200;
+  for (let from = 0; ; from += pageSize) {
+    const query = profile.role === "admin"
+      ? supabase.from("sales").select("id,sale_date,daily_order_number,payment_method,grand_total,status,created_at,staff_id,voided_at,void_reason").order("sale_date", { ascending: false }).order("daily_order_number", { ascending: false })
+      : supabase.from("staff_sales").select("id,sale_date,daily_order_number,payment_method,grand_total,status,created_at").order("sale_date", { ascending: false }).order("daily_order_number", { ascending: false });
+    const { data, error } = options.all
+      ? await query.range(from, from + pageSize - 1)
+      : await query.limit(pageSize);
+    if (error) throw new Error("Unable to load sales history.");
+    const page = (data ?? []) as unknown as Record<string, unknown>[];
+    rows.push(...page);
+    if (!options.all || page.length < pageSize) break;
+  }
   if (profile.role !== "admin") return rows.map((row) => toSaleSummary(row));
 
   const staffIds = [...new Set(rows.map((row) => String(row.staff_id ?? "")).filter(Boolean))];
@@ -191,19 +198,33 @@ export async function listSales(): Promise<SaleSummary[]> {
   return rows.map((row) => toSaleSummary(row, names.get(String(row.staff_id))));
 }
 
-export async function listSaleItems(saleIds: string[]): Promise<SaleItem[]> {
+export async function listSaleItems(saleIds: string[], options: { all?: boolean } = {}): Promise<SaleItem[]> {
   if (saleIds.length === 0) return [];
   if (!hasSupabaseEnv()) return demoSaleItems.filter((item) => saleIds.includes(item.sale_id));
 
   const supabase = await createClient();
   const profile = await getCurrentProfile();
   if (!profile) return [];
-  const result = profile.role === "admin"
-    ? await supabase.from("sale_items").select("id,sale_id,product_id,product_code,product_name,quantity,unit_price,unit_cost,subtotal,cost_total,profit").in("sale_id", saleIds).order("id")
-    : await supabase.from("staff_sale_items").select("id,sale_id,product_code,product_name,quantity,unit_price,subtotal").in("sale_id", saleIds).order("id");
-  const { data, error } = result;
-  if (error) throw new Error("Unable to load sale items.");
-  return ((data ?? []) as unknown as Record<string, unknown>[]).map((row) => ({
+  const rows: Record<string, unknown>[] = [];
+  const idChunks = options.all
+    ? Array.from({ length: Math.ceil(saleIds.length / 100) }, (_, index) => saleIds.slice(index * 100, index * 100 + 100))
+    : [saleIds];
+  for (const ids of idChunks) {
+    const pageSize = options.all ? 500 : 1000;
+    for (let from = 0; ; from += pageSize) {
+      const query = profile.role === "admin"
+        ? supabase.from("sale_items").select("id,sale_id,product_id,product_code,product_name,quantity,unit_price,unit_cost,subtotal,cost_total,profit").in("sale_id", ids).order("id")
+        : supabase.from("staff_sale_items").select("id,sale_id,product_code,product_name,quantity,unit_price,subtotal").in("sale_id", ids).order("id");
+      const { data, error } = options.all
+        ? await query.range(from, from + pageSize - 1)
+        : await query;
+      if (error) throw new Error("Unable to load sale items.");
+      const page = (data ?? []) as unknown as Record<string, unknown>[];
+      rows.push(...page);
+      if (!options.all || page.length < pageSize) break;
+    }
+  }
+  return rows.map((row) => ({
     id: String(row.id),
     sale_id: String(row.sale_id),
     product_id: row.product_id ? String(row.product_id) : "",
@@ -255,9 +276,20 @@ export async function listStockMovements(): Promise<StockMovement[]> {
   const supabase = await createClient();
   const profile = await getCurrentProfile();
   if (!profile || profile.role !== "admin") return [];
-  const { data, error } = await supabase.from("stock_movements").select("*").order("created_at", { ascending: false }).limit(250);
-  if (error) throw new Error("Unable to load stock movement history.");
-  const rows = (data ?? []) as Record<string, unknown>[];
+  const rows: Record<string, unknown>[] = [];
+  const pageSize = 500;
+  for (let from = 0; ; from += pageSize) {
+    const { data, error } = await supabase
+      .from("stock_movements")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .range(from, from + pageSize - 1);
+    if (error) throw new Error("Unable to load stock movement history.");
+    const page = (data ?? []) as Record<string, unknown>[];
+    rows.push(...page);
+    if (page.length < pageSize) break;
+  }
   const productIds = [...new Set(rows.map((row) => String(row.product_id ?? "")).filter(Boolean))];
   const creatorIds = [...new Set(rows.map((row) => String(row.created_by ?? "")).filter(Boolean))];
   const [productsResult, profilesResult] = await Promise.all([
@@ -287,8 +319,8 @@ export async function listStockMovements(): Promise<StockMovement[]> {
 }
 
 export async function getReportData(filters: ReportFilters = {}): Promise<ReportData> {
-  const [sales, inventory] = await Promise.all([listSales(), listProducts()]);
-  const items = await listSaleItems(sales.map((sale) => sale.id));
+  const [sales, inventory] = await Promise.all([listSales({ all: true }), listProducts()]);
+  const items = await listSaleItems(sales.map((sale) => sale.id), { all: true });
   const rows = buildReportRows(sales, items, inventory, filters);
   const { monthlyProfit, summary } = summarizeReportRows(rows);
   return {
@@ -300,13 +332,13 @@ export async function getReportData(filters: ReportFilters = {}): Promise<Report
 }
 
 export async function getDashboardSummary(profile: Profile | null): Promise<DashboardSummary> {
-  const [sales, products] = await Promise.all([listSales(), listProducts()]);
+  const [sales, products] = await Promise.all([listSales({ all: true }), listProducts()]);
   const today = getBusinessDate();
   const month = today.slice(0, 7);
   const completedSales = sales.filter((sale) => sale.status === "completed");
   const todaySales = completedSales.filter((sale) => sale.sale_date === today);
   const monthSales = completedSales.filter((sale) => sale.sale_date.startsWith(month));
-  const items = profile?.role === "admin" ? await listSaleItems(monthSales.map((sale) => sale.id)) : [];
+  const items = profile?.role === "admin" ? await listSaleItems(monthSales.map((sale) => sale.id), { all: true }) : [];
   const saleById = new Map(monthSales.map((sale) => [sale.id, sale]));
   const productTotals = new Map<string, { name: string; sold: number; revenue: number }>();
   let monthProfit = 0;
@@ -341,8 +373,8 @@ export async function getDashboardSummary(profile: Profile | null): Promise<Dash
 export async function searchRecords(query: string): Promise<SearchResults> {
   const search = query.trim().toLowerCase();
   if (!search) return { products: [], sales: [] };
-  const [products, sales] = await Promise.all([listProducts(), listSales()]);
-  const items = await listSaleItems(sales.map((sale) => sale.id));
+  const [products, sales] = await Promise.all([listProducts(), listSales({ all: true })]);
+  const items = await listSaleItems(sales.map((sale) => sale.id), { all: true });
   const itemNamesBySale = new Map<string, string[]>();
   for (const item of items) itemNamesBySale.set(item.sale_id, [...(itemNamesBySale.get(item.sale_id) ?? []), `${item.product_code} ${item.product_name}`]);
   const productMatches = products.filter((product) => [product.product_code, product.name, product.name_zh, product.name_en, product.brand, product.category, product.flavour, product.barcode].filter(Boolean).some((value) => String(value).toLowerCase().includes(search)));

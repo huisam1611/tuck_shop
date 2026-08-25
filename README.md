@@ -70,7 +70,7 @@ SUPABASE_SECRET_KEY=sb_secret_...
 
 ## Database and migrations
 
-The source of truth is the ordered migration set in `supabase/migrations/`. It includes the base schema, RLS and grants, catalogue data, historical-import safeguards, structured product fields, the HK catalogue mapping, safe sales-history replacement, deterministic backup hashes, and inventory safeguards.
+The source of truth is the ordered migration set in `supabase/migrations/`. It includes the base schema, RLS and grants, catalogue data, historical-import safeguards, structured product fields, the HK catalogue mapping, safe sales-history replacement, deterministic backup hashes, inventory safeguards, and final payload-bound retry/privilege hardening in `202608180002`.
 
 For a local database:
 
@@ -148,7 +148,7 @@ $env:SUPABASE_TEST_SERVICE_ROLE_KEY = $status.SERVICE_ROLE_KEY
 pnpm verify:local
 ```
 
-`verify:local` creates temporary local users and fixtures, checks RLS, atomicity, retries, concurrency, oversell protection, void safety, inventory import idempotency, and Staff restrictions, then cleans up its fixtures. Never point it at a production URL.
+`verify:local` creates temporary local users and fixtures, checks RLS and RPC privileges, actor-less ledger constraints, atomicity, payload-bound retries, concurrency, oversell protection, void safety, inventory import idempotency, and Staff restrictions, then cleans up its fixtures. Never point it at a production URL.
 
 The sales-replacement integration check resets only the local Supabase database before and after its run:
 
@@ -156,7 +156,7 @@ The sales-replacement integration check resets only the local Supabase database 
 pnpm verify:sales-replacement
 ```
 
-It verifies malformed-payload rollback, maintenance locking, direct-write blocking, deterministic hashes, exact counts, and ledger reconciliation.
+It verifies malformed-payload rollback, maintenance locking, direct-write blocking, deterministic hashes, exact counts, and ledger reconciliation. If `pnpm dlx` cannot download the CLI, set `SUPABASE_CLI_PATH` to an existing local `supabase` executable before running the command.
 
 ## Checks and release smoke test
 
