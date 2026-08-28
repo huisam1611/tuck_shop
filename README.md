@@ -18,6 +18,24 @@ The V1 release is deployed on Vercel and uses a production Supabase project. The
 
 The replacement preserved the existing inventory baseline. Migration `202608180001` recorded the ten approved legacy opening balances without changing current stock; the production inventory-ledger mismatch count is now zero.
 
+Release hardening migration `202608180002` has passed a fresh local migration reset and the full local integration gate. Its application to the production database is not yet confirmed in this document. Before marking it complete, create and verify a production backup, rehearse the migration in a separate test project, apply it, and run the production smoke check.
+
+## Screenshots
+
+### Admin dashboard
+
+![Admin dashboard showing revenue, low-stock alerts, and best-selling products](./docs/screenshots/dashboard.webp)
+
+### Mobile sales POS
+
+<p align="center">
+  <img
+    src="./docs/screenshots/sales-mobile.webp"
+    alt="Mobile sales POS showing product search, selected items, payment method, order total, and save action"
+    width="360"
+  />
+</p>
+
 ## Main features
 
 - Supabase email/password authentication with Admin and Staff roles
@@ -90,11 +108,45 @@ pnpm dlx supabase@latest db push
 
 Use a separate remote/test project to rehearse migrations before production. Do not edit an already-applied remote migration; add a new migration instead.
 
+### Create the first Admin
+
+The application does not automatically create a profile when an Auth user is created. Bootstrap the first Admin once from the trusted Supabase Dashboard:
+
+1. Open **Authentication → Users**, create the first user, confirm the email, and copy the user UUID.
+2. In **SQL Editor**, confirm that the UUID and email identify the intended account:
+
+```sql
+select id, email
+from auth.users
+where id = '<FIRST_ADMIN_AUTH_USER_UUID>'::uuid;
+```
+
+3. Create the matching active Admin profile with the same UUID:
+
+```sql
+insert into public.profiles (id, name, role, is_active)
+values ('<FIRST_ADMIN_AUTH_USER_UUID>'::uuid, 'First Admin', 'admin', true)
+on conflict (id) do update
+set name = excluded.name,
+    role = excluded.role,
+    is_active = excluded.is_active;
+```
+
+4. Sign in with that account and verify `/users`. Create all later Admin and Staff accounts through that page. Never expose a service-role or secret key in browser code.
+
 ## Structured product catalogue
 
-Products keep their existing IDs and SKU values. The structured fields are:
+Products keep their existing IDs and SKU values. The product requirements use business-friendly names; the existing project keeps its original database conventions:
 
-`sku`, `name_zh`, `name_en`, `brand`, `category`, `flavour`, `size`, `package_type`, `price`, `cost`, `stock_quantity`, `reorder_level`, and `barcode`.
+| Business meaning | Database/application field |
+|---|---|
+| SKU | `product_code` |
+| Chinese and English names | `name_zh`, `name_en` |
+| Brand, category, flavour, size, package and barcode | `brand`, `category`, `flavour`, `size`, `package_type`, `barcode` |
+| Selling price | `selling_price` |
+| Cost | `cost_price` |
+| Stock quantity | `current_stock` |
+| Reorder level | `minimum_stock` |
 
 The application generates the display name from the fields rather than duplicating a long name in every form or POS card. Search supports SKU, Chinese/English name, brand, category, flavour, and barcode. The active HK catalogue is mapped in `202608120002_catalogue_mapping.sql`.
 

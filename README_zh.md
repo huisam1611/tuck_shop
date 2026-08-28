@@ -18,6 +18,24 @@ V1 已部署到 Vercel，並連接 production Supabase。production 歷史銷售
 
 替換流程保留了原有庫存基準。Migration `202608180001` 已在不改變目前庫存的情況下記錄 10 個已核准的舊 opening balances；Production inventory-ledger mismatch 現為 0。
 
+Release hardening migration `202608180002` 已通過 fresh local migration reset 及完整本機 integration gate，但本文件尚未確認它已套用至 production database。標記完成前，必須先建立並驗證 production backup、在獨立 test project rehearsal、套用 migration，然後執行 production smoke check。
+
+## 畫面截圖
+
+### Admin Dashboard
+
+![Admin Dashboard，顯示營業額、低庫存提示及暢銷產品](./docs/screenshots/dashboard.webp)
+
+### 手機版銷售 POS
+
+<p align="center">
+  <img
+    src="./docs/screenshots/sales-mobile.webp"
+    alt="手機版銷售 POS，顯示產品搜尋、已選產品、付款方式、訂單總額及儲存操作"
+    width="360"
+  />
+</p>
+
 ## 主要功能
 
 - Supabase email/password 登入，以及 Admin／Staff 角色
@@ -90,11 +108,45 @@ pnpm dlx supabase@latest db push
 
 Production 前請先用另一個 remote/test project rehearsal。已套用到 remote 的 migration 不要直接修改，應新增一個 migration。
 
+### 建立第一個 Admin
+
+建立 Auth user 時，應用程式不會自動建立 profile。請只在受信任的 Supabase Dashboard 執行一次以下 bootstrap：
+
+1. 開啟 **Authentication → Users**，建立第一個 user、確認 email，然後複製 user UUID。
+2. 在 **SQL Editor** 確認 UUID 及 email 是預期帳戶：
+
+```sql
+select id, email
+from auth.users
+where id = '<FIRST_ADMIN_AUTH_USER_UUID>'::uuid;
+```
+
+3. 使用相同 UUID 建立啟用中的 Admin profile：
+
+```sql
+insert into public.profiles (id, name, role, is_active)
+values ('<FIRST_ADMIN_AUTH_USER_UUID>'::uuid, 'First Admin', 'admin', true)
+on conflict (id) do update
+set name = excluded.name,
+    role = excluded.role,
+    is_active = excluded.is_active;
+```
+
+4. 使用該帳戶登入並驗證 `/users`。之後的 Admin 和 Staff 帳戶全部從該頁建立。不要在瀏覽器程式碼公開 service-role 或 secret key。
+
 ## 結構化產品目錄
 
-產品的既有 ID 和 SKU 不會改變。結構化欄位如下：
+產品的既有 ID 和 SKU 不會改變。需求文件使用業務名稱；現有專案保留原本的資料庫命名：
 
-`sku`、`name_zh`、`name_en`、`brand`、`category`、`flavour`、`size`、`package_type`、`price`、`cost`、`stock_quantity`、`reorder_level`、`barcode`。
+| 業務含義 | 資料庫／應用程式欄位 |
+|---|---|
+| SKU | `product_code` |
+| 中、英文名稱 | `name_zh`、`name_en` |
+| 品牌、分類、口味、規格、包裝及條碼 | `brand`、`category`、`flavour`、`size`、`package_type`、`barcode` |
+| 售價 | `selling_price` |
+| 成本 | `cost_price` |
+| 庫存數量 | `current_stock` |
+| 重訂貨水平 | `minimum_stock` |
 
 應用程式會由欄位產生顯示名稱，而不是在每個表單或 POS 卡片重複儲存一條很長的名稱。搜尋支援 SKU、中／英文名稱、品牌、分類、口味及條碼。啟用中的 HK 產品對照在 `202608120002_catalogue_mapping.sql`。
 
